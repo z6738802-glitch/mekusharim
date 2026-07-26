@@ -45,12 +45,14 @@ router.all('/ivr', async (req, res) => {
     const benefits = await B.getActiveBenefits();
 
     // ── שלב 1: בחירת הטבה ──
-    // אם עדיין לא בחר — משמיע תפריט וקולט למשתנה choice.
+    // המשתמש מקיש מספר לפי המיקום בתפריט (1, 2, 3...), לא לפי ה-id.
     if (p.choice === undefined) {
       return send(res, buildMenu(benefits));
     }
 
-    const chosen = benefits.find((b) => String(b.id) === String(p.choice));
+    // ממפה מהמיקום שהוקש (1-based) ל-id האמיתי
+    const idx = parseInt(p.choice, 10) - 1;
+    const chosen = benefits[idx];
     if (!chosen) {
       // בחירה לא חוקית — חוזר לתפריט
       return send(res, buildMenu(benefits));
@@ -83,15 +85,16 @@ router.all('/ivr', async (req, res) => {
 });
 
 // ── בניית תפריט הבחירה ──
-// "לבחירת [שם הטבה] הקישו [מספר]" לכל הטבה, וקליטה למשתנה choice.
+// "לבחירת [שם הטבה] הקישו [מספר לפי מיקום]" לכל הטבה.
 function buildMenu(benefits) {
   const items = [];
-  for (const b of benefits) {
+  benefits.forEach((b, i) => {
+    const position = i + 1; // 1, 2, 3...
     items.push(file(REC.choosePrefix));  // "לבחירת"
     items.push(file(benefitRec(b)));      // שם ההטבה (הקלטה)
     items.push(file(REC.pressPrefix));    // "הקישו"
-    items.push(digits(b.id));             // מספר ההטבה
-  }
+    items.push(digits(position));         // מספר לפי מיקום בתפריט
+  });
   return read({ message: items, varName: 'choice' });
 }
 
