@@ -92,8 +92,7 @@ function buildMenu(benefits) {
     items.push(file(REC.pressPrefix));    // "הקישו"
     items.push(digits(b.id));             // מספר ההטבה
   }
-  // אורך המזהה משתנה — נאפשר עד 4 ספרות
-  return read({ message: items, varName: 'choice', min: 1, max: 4 });
+  return read({ message: items, varName: 'choice' });
 }
 
 // ── טיפול במצב "כבר בחר" ──

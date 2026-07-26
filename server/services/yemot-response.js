@@ -44,10 +44,10 @@ export function play(...items) {
  * השמעה + קליטת הקשה.
  * read=<הודעה>=<var>,<default>,<min>,<max>,<type>,<reread>
  */
-export function read({ message, varName, min = 1, max = 1, type = 'Digits', reread = true }) {
+export function read({ message, varName, type = 'Digits', reread = true }) {
   const msg = message.join('.');
   const yesNo = reread ? 'yes' : 'no';
-  return `read=${msg}=${varName},,${min},${max},${type},${yesNo},*/&`;
+  return `read=${msg}=${varName},,${type},${yesNo}`;
 }
 
 /** מעבר לשלוחה אחרת */
