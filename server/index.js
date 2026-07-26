@@ -2,6 +2,7 @@ import express from 'express';
 import 'dotenv/config';
 import ivrRouter from './routes/ivr.js';
 import adminRouter from './routes/admin.js';
+import { initDb } from './db/init.js';
 
 const app = express();
 
@@ -21,6 +22,14 @@ app.use('/admin', adminRouter);
 app.use('/panel', express.static('admin'));
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`מקושרים — שרת פועל על פורט ${PORT}`);
-});
+
+initDb()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`מקושרים — שרת פועל על פורט ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('כשל באתחול ה-DB, השרת לא עלה:', err.message);
+    process.exit(1);
+  });
