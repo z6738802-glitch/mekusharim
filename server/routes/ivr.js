@@ -11,18 +11,18 @@ const router = express.Router();
 const DIR = process.env.YEMOT_MAIN_DIR || ''; // למשל "/11" — ריק = שורש
 
 const REC = {
-  notAuthorized:   `${DIR}/001`, // מספרך אינו מורשה
-  choosePrefix:    `${DIR}/002`, // "לבחירת"
-  pressPrefix:     `${DIR}/003`, // "הקישו"
-  alreadyChose:    `${DIR}/004`, // כבר בחרת את ההטבה
-  alreadyThisOne:  `${DIR}/005`, // כבר בחרת הטבה זו
-  changeMenu:      `${DIR}/006`, // לשינוי 1, לביטול 2
-  couponMenu:      `${DIR}/007`, // לשמיעת קופון 1, למחיקה 2, לחזרה 3
-  registered:      `${DIR}/008`, // בחירתך נרשמה תודה
-  cancelled:       `${DIR}/009`, // בחירתך בוטלה
-  outOfStock:      `${DIR}/010`, // המלאי אזל
-  saveCouponNote:  `${DIR}/011`, // שים לב שמור את מספר הקופון
-  yourCouponIs:    `${DIR}/012`, // הקופון שלך הוא
+  notAuthorized:   `${DIR}/000`, // מספרך אינו מורשה
+  choosePrefix:    `${DIR}/001`, // "לבחירת"
+  pressPrefix:     `${DIR}/002`, // "הקישו"
+  alreadyChose:    `${DIR}/003`, // כבר בחרת את ההטבה
+  alreadyThisOne:  `${DIR}/004`, // כבר בחרת הטבה זו
+  changeMenu:      `${DIR}/005`, // לשינוי 1, לביטול 2
+  couponMenu:      `${DIR}/006`, // לשמיעת קופון 1, למחיקה 2, לחזרה 3
+  registered:      `${DIR}/007`, // בחירתך נרשמה תודה
+  cancelled:       `${DIR}/008`, // בחירתך בוטלה
+  outOfStock:      `${DIR}/009`, // המלאי אזל
+  saveCouponNote:  `${DIR}/010`, // שים לב שמור את מספר הקופון
+  yourCouponIs:    `${DIR}/011`, // הקופון שלך הוא
 };
 
 // נתיב שם ההטבה בתיקיית Benefits
