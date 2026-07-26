@@ -5,25 +5,28 @@ import { play, read, file, tts, digits, goToFolder, hangup, respond } from '../s
 
 const router = express.Router();
 
-// ── מיפוי הקלטות קבועות (מ-000 בשלוחה הראשית) ──
-// הפתיח מוגדר ישירות בשלוחה בימות (לפני המעבר לכאן), לכן לא כאן.
+// ── מיפוי הקלטות קבועות ──
+// נתיבים מלאים דורשים slash מוביל (f-/...). RECDIR הוא נתיב השלוחה הראשית.
+// ניתן להגדיר דרך משתנה סביבה; ברירת מחדל = שורש.
+const DIR = process.env.YEMOT_MAIN_DIR || ''; // למשל "/11" — ריק = שורש
+
 const REC = {
-  notAuthorized:   'main/000', // מספרך אינו מורשה
-  choosePrefix:    'main/001', // "לבחירת"
-  pressPrefix:     'main/002', // "הקישו"
-  alreadyChose:    'main/003', // כבר בחרת את ההטבה
-  alreadyThisOne:  'main/004', // כבר בחרת הטבה זו
-  changeMenu:      'main/005', // לשינוי 1, לביטול 2
-  couponMenu:      'main/006', // לשמיעת קופון 1, למחיקה 2, לחזרה 3
-  registered:      'main/007', // בחירתך נרשמה תודה
-  cancelled:       'main/008', // בחירתך בוטלה
-  outOfStock:      'main/009', // המלאי אזל
-  saveCouponNote:  'main/010', // שים לב שמור את מספר הקופון
-  yourCouponIs:    'main/011', // הקופון שלך הוא
+  notAuthorized:   `${DIR}/001`, // מספרך אינו מורשה
+  choosePrefix:    `${DIR}/002`, // "לבחירת"
+  pressPrefix:     `${DIR}/003`, // "הקישו"
+  alreadyChose:    `${DIR}/004`, // כבר בחרת את ההטבה
+  alreadyThisOne:  `${DIR}/005`, // כבר בחרת הטבה זו
+  changeMenu:      `${DIR}/006`, // לשינוי 1, לביטול 2
+  couponMenu:      `${DIR}/007`, // לשמיעת קופון 1, למחיקה 2, לחזרה 3
+  registered:      `${DIR}/008`, // בחירתך נרשמה תודה
+  cancelled:       `${DIR}/009`, // בחירתך בוטלה
+  outOfStock:      `${DIR}/010`, // המלאי אזל
+  saveCouponNote:  `${DIR}/011`, // שים לב שמור את מספר הקופון
+  yourCouponIs:    `${DIR}/012`, // הקופון שלך הוא
 };
 
-// נתיב שם ההטבה בתיקיית Benefits (למשל "Benefits/1")
-const benefitRec = (benefit) => benefit.recording || `Benefits/${benefit.id}`;
+// נתיב שם ההטבה בתיקיית Benefits
+const benefitRec = (benefit) => benefit.recording || `${DIR}/Benefits/${benefit.id}`;
 
 /**
  * שלוחת ה-API הראשית. ימות פונה לכאן בכל שלב.
