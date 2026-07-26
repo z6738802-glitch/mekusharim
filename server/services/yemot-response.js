@@ -47,7 +47,7 @@ export function play(...items) {
 export function read({ message, varName, type = 'Digits', reread = true }) {
   const msg = message.join('.');
   const yesNo = reread ? 'yes' : 'no';
-  return `read=${msg}=${varName},,1,1,${type},${yesNo}`;
+  return `read=${msg}=${varName},,,,${type},${yesNo}`;
 }
 
 /** מעבר לשלוחה אחרת */
