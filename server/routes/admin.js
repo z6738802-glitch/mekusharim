@@ -1,5 +1,6 @@
 import express from 'express';
 import multer from 'multer';
+import * as XLSX from 'xlsx';
 import { query } from '../db/index.js';
 import { uploadRecording } from '../services/yemot.js';
 
@@ -45,6 +46,48 @@ router.post('/contacts/bulk', async (req, res) => {
     inserted++;
   }
   res.json({ inserted });
+});
+
+// הורדת תבנית אקסל לדוגמה
+router.get('/contacts/template', (req, res) => {
+  const rows = [
+    { 'טלפון': '0501234567', 'שם': 'ישראל ישראלי', 'בית כנסת': 'בית כנסת מרכזי' },
+    { 'טלפון': '0527654321', 'שם': 'משה כהן', 'בית כנסת': 'חסידי גור' },
+  ];
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'לקוחות');
+  const buf = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+  res.setHeader('Content-Disposition', 'attachment; filename=contacts_template.xlsx');
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.send(buf);
+});
+
+// ייבוא מקובץ אקסל
+router.post('/contacts/import', upload.single('file'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'no file' });
+  try {
+    const wb = XLSX.read(req.file.buffer, { type: 'buffer' });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws);
+    let inserted = 0;
+    for (const r of rows) {
+      // תמיכה בכותרות עברית ואנגלית
+      const phone = String(r['טלפון'] || r.phone || r.Phone || '').trim();
+      const name = r['שם'] || r.name || r.Name || null;
+      const synagogue = r['בית כנסת'] || r.synagogue || r.Synagogue || null;
+      if (!phone) continue;
+      await query(
+        `insert into contacts (phone, name, synagogue) values ($1,$2,$3)
+         on conflict (phone) do update set name=$2, synagogue=$3`,
+        [phone, name, synagogue]
+      );
+      inserted++;
+    }
+    res.json({ inserted, total: rows.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 router.delete('/contacts/:id', async (req, res) => {
@@ -131,10 +174,80 @@ router.delete('/coupons/:id', async (req, res) => {
   res.json({ ok: true });
 });
 
+// ════════════ כרטסת לקוח ════════════
+// כל המידע על לקוח בודד: פרטים + הזמנות + קופונים
+router.get('/contacts/:id/card', async (req, res) => {
+  const { rows: contactRows } = await query(`select * from contacts where id=$1`, [req.params.id]);
+  if (!contactRows.length) return res.status(404).json({ error: 'not found' });
+  const contact = contactRows[0];
+
+  // כל ההזמנות של הלקוח (לפי טלפון)
+  const { rows: selections } = await query(
+    `select s.id, s.created_at, b.id as benefit_id, b.name as benefit_name, b.type
+       from selections s join benefits b on b.id = s.benefit_id
+      where s.phone = $1 order by s.created_at desc`,
+    [contact.phone]
+  );
+
+  // קופונים שהוקצו ללקוח
+  const { rows: coupons } = await query(
+    `select c.code, c.assigned_at, b.name as benefit_name
+       from coupons c join benefits b on b.id = c.benefit_id
+      where c.phone = $1 order by c.assigned_at desc`,
+    [contact.phone]
+  );
+
+  res.json({ contact, selections, coupons });
+});
+
+// הוספת הזמנה ידנית ללקוח
+router.post('/contacts/:id/selection', async (req, res) => {
+  const { rows } = await query(`select phone from contacts where id=$1`, [req.params.id]);
+  if (!rows.length) return res.status(404).json({ error: 'not found' });
+  const phone = rows[0].phone;
+  const { benefit_id } = req.body;
+  await query(`insert into selections (benefit_id, phone) values ($1,$2)`, [benefit_id, phone]);
+  res.json({ ok: true });
+});
+
+// ביטול הזמנה ידנית (משחרר גם קופון אם יש)
+router.delete('/selections/:id', async (req, res) => {
+  // מוצא את ההזמנה כדי לשחרר קופון תואם
+  const { rows } = await query(
+    `select s.phone, s.benefit_id from selections s where s.id=$1`, [req.params.id]
+  );
+  if (rows.length) {
+    const { phone, benefit_id } = rows[0];
+    await query(
+      `update coupons set phone=null, assigned_at=null where benefit_id=$1 and phone=$2`,
+      [benefit_id, phone]
+    );
+  }
+  await query(`delete from selections where id=$1`, [req.params.id]);
+  res.json({ ok: true });
+});
+
+// ════════════ דוח מפורט של הטבה ════════════
+// מי הזמין הטבה מסוימת, עם פרטי הלקוח (לפילטר בית כנסת)
+router.get('/benefits/:id/registrations', async (req, res) => {
+  const { rows } = await query(
+    `select s.id as selection_id, s.created_at, c.id as contact_id,
+            c.phone, c.name, c.synagogue,
+            (select code from coupons cp where cp.benefit_id=s.benefit_id and cp.phone=s.phone limit 1) as coupon
+       from selections s
+       left join contacts c on c.phone = s.phone
+      where s.benefit_id = $1
+      order by s.created_at desc`,
+    [req.params.id]
+  );
+  res.json(rows);
+});
+
+
 // ════════════ דוחות ════════════
 router.get('/report', async (req, res) => {
   const { rows } = await query(
-    `select b.name, b.type, b.total_stock,
+    `select b.id, b.name, b.type, b.total_stock,
        count(s.id)::int as selections
      from benefits b
      left join selections s on s.benefit_id=b.id

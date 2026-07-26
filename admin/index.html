@@ -8,69 +8,39 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     :root {
-      --bg: #0f1419;
-      --surface: #1a1f2e;
-      --surface-2: #232838;
-      --border: #2d3444;
-      --text: #e8eaed;
-      --text-dim: #9aa0a9;
-      --accent: #4f8cff;
-      --accent-dim: #2d4a7c;
-      --green: #34c77b;
-      --red: #ef5350;
-      --amber: #f5a623;
-      --radius: 10px;
+      --bg: #0f1419; --surface: #1a1f2e; --surface-2: #232838; --border: #2d3444;
+      --text: #e8eaed; --text-dim: #9aa0a9; --accent: #4f8cff; --accent-dim: #2d4a7c;
+      --green: #34c77b; --red: #ef5350; --amber: #f5a623; --radius: 10px;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body {
-      direction: rtl;
-      text-align: right;
-      font-family: 'Heebo', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      font-size: 15px;
-      line-height: 1.6;
-    }
+    html, body { direction: rtl; text-align: right; font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.6; }
     .layout { display: flex; min-height: 100vh; }
-    .sidebar {
-      width: 220px; background: var(--surface); border-left: 1px solid var(--border);
-      padding: 24px 0; flex-shrink: 0;
-    }
+    .sidebar { width: 220px; background: var(--surface); border-left: 1px solid var(--border); padding: 24px 0; flex-shrink: 0; }
     .brand { padding: 0 24px 24px; font-weight: 700; font-size: 20px; color: var(--accent); }
-    .nav-item {
-      display: flex; align-items: center; gap: 12px; padding: 12px 24px;
-      cursor: pointer; color: var(--text-dim); transition: all .15s; border: none;
-      background: none; width: 100%; text-align: right; font-family: inherit; font-size: 15px;
-    }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 24px; cursor: pointer; color: var(--text-dim); transition: all .15s; border: none; background: none; width: 100%; text-align: right; font-family: inherit; font-size: 15px; }
     .nav-item:hover { background: var(--surface-2); color: var(--text); }
     .nav-item.active { background: var(--accent-dim); color: var(--text); border-right: 3px solid var(--accent); }
     .nav-item svg { width: 18px; height: 18px; }
     .main { flex: 1; padding: 32px; overflow-y: auto; }
     .page-title { font-size: 24px; font-weight: 700; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
-    .card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 20px; margin-bottom: 20px;
-    }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; }
     table { width: 100%; border-collapse: collapse; }
     th, td { padding: 12px; text-align: right; border-bottom: 1px solid var(--border); }
     th { color: var(--text-dim); font-weight: 500; font-size: 13px; }
     td { font-size: 14px; }
-    .btn {
-      display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px;
-      border-radius: 8px; border: none; cursor: pointer; font-family: inherit;
-      font-size: 14px; font-weight: 500; transition: all .15s;
-    }
+    tr.clickable { cursor: pointer; }
+    tr.clickable:hover td { background: var(--surface-2); }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 8px; border: none; cursor: pointer; font-family: inherit; font-size: 14px; font-weight: 500; transition: all .15s; }
     .btn svg { width: 16px; height: 16px; }
     .btn-primary { background: var(--accent); color: white; }
     .btn-primary:hover { background: #3d7aef; }
     .btn-ghost { background: var(--surface-2); color: var(--text); }
     .btn-danger { background: transparent; color: var(--red); padding: 6px; }
     .btn-danger:hover { background: rgba(239,83,80,.1); }
-    input, select {
-      background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
-      padding: 10px 12px; border-radius: 8px; font-family: inherit; font-size: 14px; width: 100%;
-    }
-    input:focus, select:focus { outline: none; border-color: var(--accent); }
+    .link { color: var(--accent); cursor: pointer; text-decoration: none; }
+    .link:hover { text-decoration: underline; }
+    input, select, textarea { background: var(--surface-2); border: 1px solid var(--border); color: var(--text); padding: 10px 12px; border-radius: 8px; font-family: inherit; font-size: 14px; width: 100%; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
     .field { margin-bottom: 14px; }
     .field label { display: block; margin-bottom: 6px; color: var(--text-dim); font-size: 13px; }
     .row { display: flex; gap: 12px; }
@@ -79,19 +49,25 @@
     .badge-green { background: rgba(52,199,123,.15); color: var(--green); }
     .badge-amber { background: rgba(245,166,35,.15); color: var(--amber); }
     .badge-dim { background: var(--surface-2); color: var(--text-dim); }
-    .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 12px; flex-wrap: wrap; }
     .hidden { display: none; }
-    .modal-bg {
-      position: fixed; inset: 0; background: rgba(0,0,0,.6);
-      display: flex; align-items: center; justify-content: center; z-index: 100;
-    }
-    .modal { background: var(--surface); border-radius: var(--radius); padding: 24px; width: 440px; max-width: 90vw; }
+    .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: flex; align-items: center; justify-content: center; z-index: 100; }
+    .modal { background: var(--surface); border-radius: var(--radius); padding: 24px; width: 440px; max-width: 90vw; max-height: 88vh; overflow-y: auto; }
+    .modal.wide { width: 640px; }
     .modal h3 { margin-bottom: 18px; }
     .checkbox-row { display: flex; align-items: center; gap: 8px; }
     .checkbox-row input { width: auto; }
     .empty { text-align: center; color: var(--text-dim); padding: 40px; }
-    .file-drop { border: 1px dashed var(--border); border-radius: 8px; padding: 16px; text-align: center; color: var(--text-dim); cursor: pointer; }
-    .file-drop:hover { border-color: var(--accent); }
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .stat { background: var(--surface-2); border-radius: 8px; padding: 14px; }
+    .stat .num { font-size: 24px; font-weight: 700; }
+    .stat .lbl { color: var(--text-dim); font-size: 13px; }
+    .section-h { font-size: 16px; font-weight: 700; margin: 20px 0 12px; }
+    .rec-controls { display: flex; gap: 10px; align-items: center; margin: 12px 0; }
+    .rec-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--red); animation: pulse 1s infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+    .filter-bar { display: flex; gap: 10px; margin-bottom: 16px; align-items: center; }
+    .filter-bar select { width: auto; min-width: 180px; }
   </style>
 </head>
 <body>
@@ -106,19 +82,14 @@
     </aside>
     <main class="main" id="main"></main>
   </div>
-
   <div id="modalRoot"></div>
-
   <script>
     const API = '/admin';
     let ADMIN_KEY = localStorage.getItem('adminKey') || prompt('מפתח ניהול:');
     localStorage.setItem('adminKey', ADMIN_KEY);
 
     async function api(path, opts = {}) {
-      const res = await fetch(API + path, {
-        ...opts,
-        headers: { 'Content-Type': 'application/json', 'x-admin-key': ADMIN_KEY, ...(opts.headers||{}) },
-      });
+      const res = await fetch(API + path, { ...opts, headers: { 'Content-Type': 'application/json', 'x-admin-key': ADMIN_KEY, ...(opts.headers||{}) } });
       if (res.status === 401) { localStorage.removeItem('adminKey'); location.reload(); }
       return res.json();
     }
@@ -126,24 +97,31 @@
       const res = await fetch(API + path, { method: 'POST', headers: { 'x-admin-key': ADMIN_KEY }, body: formData });
       return res.json();
     }
+    function apiDownload(path, filename) {
+      fetch(API + path, { headers: { 'x-admin-key': ADMIN_KEY } })
+        .then(r => r.blob()).then(blob => {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
+          URL.revokeObjectURL(url);
+        });
+    }
 
     const main = document.getElementById('main');
     const modalRoot = document.getElementById('modalRoot');
+    const pages = {};
 
     document.getElementById('nav').addEventListener('click', (e) => {
-      const btn = e.target.closest('.nav-item');
-      if (!btn) return;
+      const btn = e.target.closest('.nav-item'); if (!btn) return;
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-      btn.classList.add('active');
-      pages[btn.dataset.page]();
+      btn.classList.add('active'); pages[btn.dataset.page]();
     });
 
     function icon(name) { return `<i data-lucide="${name}"></i>`; }
     function refresh() { lucide.createIcons(); }
     function closeModal() { modalRoot.innerHTML = ''; }
+    function fmtDate(s) { if (!s) return '—'; const d = new Date(s); return d.toLocaleDateString('he-IL') + ' ' + d.toLocaleTimeString('he-IL', {hour:'2-digit',minute:'2-digit'}); }
 
     // ═══════════ הטבות ═══════════
-    const pages = {};
     pages.benefits = async () => {
       main.innerHTML = `<div class="page-title">${icon('gift')} הטבות</div>
         <div class="toolbar"><span></span>
@@ -167,10 +145,10 @@
           <td><span class="badge ${b.active ? 'badge-green' : 'badge-dim'}">${b.active ? 'פעיל' : 'כבוי'}</span></td>
           <td>${b.recording ? icon('check') : icon('x')}</td>
           <td style="display:flex;gap:4px">
-            ${b.type === 'coupon' ? `<button class="btn btn-ghost" style="padding:6px" onclick="couponsModal(${b.id},'${b.name}')">${icon('ticket')}</button>` : ''}
-            <button class="btn btn-ghost" style="padding:6px" onclick="recordingModal(${b.id})">${icon('mic')}</button>
-            <button class="btn btn-ghost" style="padding:6px" onclick='benefitModal(${JSON.stringify(b)})'>${icon('pencil')}</button>
-            <button class="btn btn-danger" onclick="delBenefit(${b.id})">${icon('trash-2')}</button>
+            ${b.type === 'coupon' ? `<button class="btn btn-ghost" style="padding:6px" onclick="couponsModal(${b.id},'${b.name.replace(/'/g,"")}')" title="קופונים">${icon('ticket')}</button>` : ''}
+            <button class="btn btn-ghost" style="padding:6px" onclick="recordingModal(${b.id})" title="הקלטה">${icon('mic')}</button>
+            <button class="btn btn-ghost" style="padding:6px" onclick='benefitModal(${JSON.stringify(b)})' title="עריכה">${icon('pencil')}</button>
+            <button class="btn btn-danger" onclick="delBenefit(${b.id})" title="מחיקה">${icon('trash-2')}</button>
           </td></tr>`).join('')}</tbody></table>`;
       refresh();
     };
@@ -194,7 +172,7 @@
               <option value="true" ${b.stackable?'selected':''}>כן</option>
             </select></div>
           </div>
-          <div class="field checkbox-row"><input type="checkbox" id="bActive" ${b.active??true?'checked':''}><label style="margin:0">פעיל</label></div>
+          <div class="field checkbox-row"><input type="checkbox" id="bActive" ${(b.active??true)?'checked':''}><label style="margin:0">פעיל</label></div>
           <div class="row" style="margin-top:8px">
             <button class="btn btn-ghost" onclick="closeModal()">ביטול</button>
             <button class="btn btn-primary" onclick="saveBenefit(${b.id||0})">שמירה</button>
@@ -202,53 +180,91 @@
         </div></div>`;
       refresh();
     };
-
     window.saveBenefit = async (id) => {
-      const body = {
-        name: bName.value, type: bType.value,
-        total_stock: +bStock.value, per_family: +bFamily.value,
-        stackable: bStack.value === 'true', active: bActive.checked, sort_order: +bSort.value,
-      };
+      const body = { name: bName.value, type: bType.value, total_stock: +bStock.value, per_family: +bFamily.value, stackable: bStack.value === 'true', active: bActive.checked, sort_order: +bSort.value };
       if (id) await api('/benefits/'+id, { method:'PUT', body: JSON.stringify(body) });
       else await api('/benefits', { method:'POST', body: JSON.stringify(body) });
       closeModal(); pages.benefits();
     };
     window.delBenefit = async (id) => { if(confirm('למחוק את ההטבה?')){ await api('/benefits/'+id,{method:'DELETE'}); pages.benefits(); }};
-
-    // הקלטה
+    // ── הקלטה: העלאה + הקלטה ישירה ──
+    let mediaRecorder = null, recChunks = [], recBlob = null;
     window.recordingModal = (id) => {
+      recBlob = null;
       modalRoot.innerHTML = `<div class="modal-bg" onclick="if(event.target===this)closeModal()">
-        <div class="modal"><h3>העלאת הקלטת שם ההטבה</h3>
-          <p style="color:var(--text-dim);font-size:13px;margin-bottom:14px">קובץ אודיו — יומר אוטומטית ויעלה לתיקיית Benefits בימות</p>
-          <div class="field"><label>קובץ</label><input id="recFile" type="file" accept="audio/*"></div>
-          <div id="recStatus"></div>
-          <div class="row" style="margin-top:8px">
+        <div class="modal"><h3>הקלטת שם ההטבה</h3>
+          <p style="color:var(--text-dim);font-size:13px;margin-bottom:14px">העלה קובץ או הקלט ישירות. הקובץ יומר אוטומטית ויעלה לימות.</p>
+          <div class="section-h">העלאת קובץ</div>
+          <div class="field"><input id="recFile" type="file" accept="audio/*" onchange="recBlob=this.files[0]"></div>
+          <div class="section-h">או הקלטה ישירה</div>
+          <div class="rec-controls">
+            <button class="btn btn-ghost" id="recStart" onclick="startRec()">${icon('mic')} התחל הקלטה</button>
+            <button class="btn btn-danger hidden" id="recStop" onclick="stopRec()" style="padding:9px 16px">${icon('square')} עצור</button>
+            <span id="recIndicator"></span>
+          </div>
+          <audio id="recPlayback" controls class="hidden" style="width:100%;margin-top:10px"></audio>
+          <div id="recStatus" style="margin-top:10px"></div>
+          <div class="row" style="margin-top:14px">
             <button class="btn btn-ghost" onclick="closeModal()">ביטול</button>
             <button class="btn btn-primary" onclick="uploadRec(${id})">${icon('upload')} העלאה</button>
           </div>
         </div></div>`;
       refresh();
     };
+    window.startRec = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream); recChunks = [];
+        mediaRecorder.ondataavailable = e => recChunks.push(e.data);
+        mediaRecorder.onstop = () => {
+          recBlob = new Blob(recChunks, { type: 'audio/webm' });
+          const url = URL.createObjectURL(recBlob);
+          const pb = document.getElementById('recPlayback'); pb.src = url; pb.classList.remove('hidden');
+          stream.getTracks().forEach(t => t.stop());
+        };
+        mediaRecorder.start();
+        document.getElementById('recStart').classList.add('hidden');
+        document.getElementById('recStop').classList.remove('hidden');
+        document.getElementById('recIndicator').innerHTML = '<span class="rec-dot"></span>';
+      } catch (err) { document.getElementById('recStatus').innerHTML = `<p style="color:var(--red)">אין גישה למיקרופון: ${err.message}</p>`; }
+    };
+    window.stopRec = () => {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+      document.getElementById('recStart').classList.remove('hidden');
+      document.getElementById('recStop').classList.add('hidden');
+      document.getElementById('recIndicator').innerHTML = '';
+    };
     window.uploadRec = async (id) => {
-      const f = recFile.files[0];
-      if (!f) return;
-      recStatus.innerHTML = '<p style="color:var(--amber)">מעלה...</p>';
-      const fd = new FormData(); fd.append('file', f);
+      if (!recBlob) { document.getElementById('recStatus').innerHTML = '<p style="color:var(--amber)">בחר קובץ או הקלט קודם</p>'; return; }
+      document.getElementById('recStatus').innerHTML = '<p style="color:var(--amber)">מעלה...</p>';
+      const fd = new FormData();
+      const ext = recBlob.name ? recBlob.name.split('.').pop() : 'webm';
+      fd.append('file', recBlob, `recording.${ext}`);
       const r = await apiUpload('/benefits/'+id+'/recording', fd);
-      if (r.ok) { recStatus.innerHTML = '<p style="color:var(--green)">הועלה בהצלחה</p>'; setTimeout(()=>{closeModal();pages.benefits();},900); }
-      else recStatus.innerHTML = `<p style="color:var(--red)">שגיאה: ${r.error}</p>`;
+      if (r.ok) { document.getElementById('recStatus').innerHTML = '<p style="color:var(--green)">הועלה בהצלחה</p>'; setTimeout(()=>{closeModal();pages.benefits();},900); }
+      else document.getElementById('recStatus').innerHTML = `<p style="color:var(--red)">שגיאה: ${r.error}</p>`;
     };
 
-    // קופונים
+    // ── קופונים ──
     window.couponsModal = async (id, name) => {
       const coupons = await api('/benefits/'+id+'/coupons');
       const free = coupons.filter(c=>!c.phone).length;
       modalRoot.innerHTML = `<div class="modal-bg" onclick="if(event.target===this)closeModal()">
-        <div class="modal" style="width:520px"><h3>קופונים — ${name}</h3>
-          <p style="color:var(--text-dim);font-size:13px;margin-bottom:12px">סה"כ ${coupons.length} | פנויים ${free}</p>
+        <div class="modal wide"><h3>קופונים — ${name}</h3>
+          <div class="stat-grid">
+            <div class="stat"><div class="num">${coupons.length}</div><div class="lbl">סה"כ</div></div>
+            <div class="stat"><div class="num">${free}</div><div class="lbl">פנויים</div></div>
+            <div class="stat"><div class="num">${coupons.length-free}</div><div class="lbl">הוקצו</div></div>
+          </div>
           <div class="field"><label>הוספת קופונים (קוד בכל שורה)</label>
-            <textarea id="couponCodes" rows="5" style="width:100%;background:var(--surface-2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px;font-family:inherit"></textarea></div>
-          <button class="btn btn-primary" onclick="addCoupons(${id},'${name}')">${icon('plus')} הוספה</button>
+            <textarea id="couponCodes" rows="4"></textarea></div>
+          <button class="btn btn-primary" onclick="addCoupons(${id},'${name.replace(/'/g,"")}')">${icon('plus')} הוספה</button>
+          <div class="section-h">רשימת קופונים</div>
+          <div style="max-height:260px;overflow-y:auto"><table><thead><tr><th>קוד</th><th>סטטוס</th><th>הוקצה ל</th><th></th></tr></thead>
+            <tbody>${coupons.map(c=>`<tr><td>${c.code}</td>
+              <td><span class="badge ${c.phone?'badge-amber':'badge-green'}">${c.phone?'הוקצה':'פנוי'}</span></td>
+              <td>${c.phone||'—'}</td>
+              <td><button class="btn btn-danger" onclick="delCoupon(${c.id},${id},'${name.replace(/'/g,"")}')">${icon('trash-2')}</button></td></tr>`).join('')}</tbody></table></div>
           <div class="row" style="margin-top:16px"><button class="btn btn-ghost" onclick="closeModal()">סגירה</button></div>
         </div></div>`;
       refresh();
@@ -259,13 +275,14 @@
       await api('/benefits/'+id+'/coupons', { method:'POST', body: JSON.stringify({ codes }) });
       couponsModal(id, name);
     };
-
+    window.delCoupon = async (cid, bid, name) => { await api('/coupons/'+cid, {method:'DELETE'}); couponsModal(bid, name); };
     // ═══════════ לקוחות ═══════════
     pages.contacts = async () => {
       main.innerHTML = `<div class="page-title">${icon('users')} לקוחות מורשים</div>
         <div class="toolbar"><span></span>
           <div style="display:flex;gap:8px">
-            <button class="btn btn-ghost" onclick="bulkModal()">${icon('upload')} ייבוא רשימה</button>
+            <button class="btn btn-ghost" onclick="apiDownload('/contacts/template','contacts_template.xlsx')">${icon('download')} תבנית אקסל</button>
+            <button class="btn btn-ghost" onclick="importModal()">${icon('file-up')} ייבוא קובץ</button>
             <button class="btn btn-primary" onclick="contactModal()">${icon('plus')} לקוח חדש</button></div></div>
         <div class="card"><div id="contactsList" class="empty">טוען...</div></div>`;
       refresh();
@@ -274,8 +291,8 @@
       if (!list.length) { el.className='empty'; el.textContent='אין לקוחות עדיין'; return; }
       el.className='';
       el.innerHTML = `<table><thead><tr><th>טלפון</th><th>שם</th><th>בית כנסת</th><th></th></tr></thead>
-        <tbody>${list.map(c=>`<tr><td>${c.phone}</td><td>${c.name||'—'}</td><td>${c.synagogue||'—'}</td>
-        <td><button class="btn btn-danger" onclick="delContact(${c.id})">${icon('trash-2')}</button></td></tr>`).join('')}</tbody></table>`;
+        <tbody>${list.map(c=>`<tr class="clickable" onclick="cardModal(${c.id})"><td>${c.phone}</td><td>${c.name||'—'}</td><td>${c.synagogue||'—'}</td>
+        <td onclick="event.stopPropagation()"><button class="btn btn-danger" onclick="delContact(${c.id})">${icon('trash-2')}</button></td></tr>`).join('')}</tbody></table>`;
       refresh();
     };
     window.contactModal = () => {
@@ -295,27 +312,66 @@
       closeModal(); pages.contacts();
     };
     window.delContact = async (id) => { if(confirm('למחוק?')){ await api('/contacts/'+id,{method:'DELETE'}); pages.contacts(); }};
-    window.bulkModal = () => {
+
+    window.importModal = () => {
       modalRoot.innerHTML = `<div class="modal-bg" onclick="if(event.target===this)closeModal()">
-        <div class="modal"><h3>ייבוא רשימת לקוחות</h3>
-          <p style="color:var(--text-dim);font-size:13px;margin-bottom:12px">שורה לכל לקוח: טלפון,שם,בית כנסת</p>
-          <textarea id="bulkData" rows="8" style="width:100%;background:var(--surface-2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px;font-family:inherit" placeholder="0501234567,ישראל ישראלי,בית כנסת מרכזי"></textarea>
-          <div class="row" style="margin-top:12px">
+        <div class="modal"><h3>ייבוא לקוחות מאקסל</h3>
+          <p style="color:var(--text-dim);font-size:13px;margin-bottom:12px">קובץ אקסל עם עמודות: טלפון, שם, בית כנסת. הורד תבנית לדוגמה מהכפתור בעמוד הראשי.</p>
+          <div class="field"><input id="importFile" type="file" accept=".xlsx,.xls,.csv"></div>
+          <div id="importStatus"></div>
+          <div class="row" style="margin-top:8px">
             <button class="btn btn-ghost" onclick="closeModal()">ביטול</button>
-            <button class="btn btn-primary" onclick="saveBulk()">ייבוא</button></div>
+            <button class="btn btn-primary" onclick="doImport()">${icon('upload')} ייבוא</button></div>
         </div></div>`;
       refresh();
     };
-    window.saveBulk = async () => {
-      const contacts = bulkData.value.split('\n').map(l=>{
-        const [phone,name,synagogue] = l.split(',').map(s=>s&&s.trim());
-        return phone ? { phone, name, synagogue } : null;
-      }).filter(Boolean);
-      const r = await api('/contacts/bulk', { method:'POST', body: JSON.stringify({ contacts }) });
-      alert(`יובאו ${r.inserted} לקוחות`);
-      closeModal(); pages.contacts();
+    window.doImport = async () => {
+      const f = document.getElementById('importFile').files[0];
+      if (!f) return;
+      document.getElementById('importStatus').innerHTML = '<p style="color:var(--amber)">מייבא...</p>';
+      const fd = new FormData(); fd.append('file', f);
+      const r = await apiUpload('/contacts/import', fd);
+      if (r.inserted !== undefined) { document.getElementById('importStatus').innerHTML = `<p style="color:var(--green)">יובאו ${r.inserted} לקוחות</p>`; setTimeout(()=>{closeModal();pages.contacts();},1000); }
+      else document.getElementById('importStatus').innerHTML = `<p style="color:var(--red)">שגיאה: ${r.error}</p>`;
     };
 
+    // ── כרטסת לקוח ──
+    window.cardModal = async (id) => {
+      const data = await api('/contacts/'+id+'/card');
+      const c = data.contact;
+      const benefits = await api('/benefits');
+      modalRoot.innerHTML = `<div class="modal-bg" onclick="if(event.target===this)closeModal()">
+        <div class="modal wide"><h3>${icon('user')} כרטסת לקוח</h3>
+          <div class="stat-grid">
+            <div class="stat"><div class="num" style="font-size:18px">${c.name||'—'}</div><div class="lbl">שם</div></div>
+            <div class="stat"><div class="num" style="font-size:18px">${c.phone}</div><div class="lbl">טלפון</div></div>
+            <div class="stat"><div class="num" style="font-size:18px">${c.synagogue||'—'}</div><div class="lbl">בית כנסת</div></div>
+          </div>
+          <div class="section-h">הזמנות (${data.selections.length})</div>
+          <table><thead><tr><th>הטבה</th><th>סוג</th><th>תאריך</th><th></th></tr></thead>
+            <tbody>${data.selections.length ? data.selections.map(s=>`<tr>
+              <td>${s.benefit_name}</td><td>${s.type==='coupon'?'קופון':'הרשמה'}</td><td>${fmtDate(s.created_at)}</td>
+              <td><button class="btn btn-danger" onclick="delSelection(${s.id},${id})" title="ביטול הזמנה">${icon('trash-2')}</button></td></tr>`).join('')
+              : '<tr><td colspan="4" style="color:var(--text-dim)">אין הזמנות</td></tr>'}</tbody></table>
+          ${data.coupons.length ? `<div class="section-h">קופונים</div>
+            <table><thead><tr><th>הטבה</th><th>קוד</th><th>תאריך</th></tr></thead>
+            <tbody>${data.coupons.map(cp=>`<tr><td>${cp.benefit_name}</td><td><b>${cp.code}</b></td><td>${fmtDate(cp.assigned_at)}</td></tr>`).join('')}</tbody></table>` : ''}
+          <div class="section-h">הוספת הזמנה ידנית</div>
+          <div class="row" style="align-items:end">
+            <div class="field" style="margin:0"><label>בחר הטבה</label><select id="manualBenefit">
+              ${benefits.map(b=>`<option value="${b.id}">${b.name}</option>`).join('')}</select></div>
+            <button class="btn btn-primary" style="flex:0" onclick="addManualSelection(${id})">${icon('plus')} הוסף</button>
+          </div>
+          <div class="row" style="margin-top:16px"><button class="btn btn-ghost" onclick="closeModal()">סגירה</button></div>
+        </div></div>`;
+      refresh();
+    };
+    window.delSelection = async (sid, cid) => { if(confirm('לבטל את ההזמנה? קופון משויך יוחזר למלאי.')){ await api('/selections/'+sid,{method:'DELETE'}); cardModal(cid); }};
+    window.addManualSelection = async (cid) => {
+      const bid = document.getElementById('manualBenefit').value;
+      await api('/contacts/'+cid+'/selection', { method:'POST', body: JSON.stringify({ benefit_id: +bid }) });
+      cardModal(cid);
+    };
     // ═══════════ דוחות ═══════════
     pages.report = async () => {
       main.innerHTML = `<div class="page-title">${icon('bar-chart-3')} דוחות</div><div class="card"><div id="reportList" class="empty">טוען...</div></div>`;
@@ -323,10 +379,46 @@
       const list = await api('/report');
       const el = document.getElementById('reportList');
       el.className='';
-      el.innerHTML = `<table><thead><tr><th>הטבה</th><th>סוג</th><th>מלאי</th><th>נבחרו</th><th>נותרו</th></tr></thead>
-        <tbody>${list.map(r=>`<tr><td>${r.name}</td><td>${r.type==='coupon'?'קופון':'הרשמה'}</td>
+      el.innerHTML = `<table><thead><tr><th>הטבה</th><th>סוג</th><th>מלאי</th><th>נבחרו</th><th>נותרו</th><th></th></tr></thead>
+        <tbody>${list.map(r=>`<tr class="clickable" onclick="benefitReport(${r.id},'${r.name.replace(/'/g,"")}')"><td>${r.name}</td><td>${r.type==='coupon'?'קופון':'הרשמה'}</td>
         <td>${r.total_stock===0?'∞':r.total_stock}</td><td>${r.selections}</td>
-        <td>${r.total_stock===0?'∞':(r.total_stock-r.selections)}</td></tr>`).join('')}</tbody></table>`;
+        <td>${r.total_stock===0?'∞':(r.total_stock-r.selections)}</td>
+        <td>${icon('chevron-left')}</td></tr>`).join('')}</tbody></table>`;
+      refresh();
+    };
+
+    // ── דוח מפורט של הטבה: מי הזמין + פילטר בית כנסת ──
+    let currentReg = [], currentBenefitName = '';
+    window.benefitReport = async (id, name) => {
+      currentBenefitName = name;
+      currentReg = await api('/benefits/'+id+'/registrations');
+      const synagogues = [...new Set(currentReg.map(r=>r.synagogue).filter(Boolean))].sort();
+      main.innerHTML = `<div class="page-title">
+          <span class="link" onclick="pages.report()">דוחות</span> ${icon('chevron-left')} ${name}</div>
+        <div class="filter-bar">
+          <label style="color:var(--text-dim)">${icon('filter')} סינון בית כנסת:</label>
+          <select id="synFilter" onchange="renderReg()">
+            <option value="">הכל</option>
+            ${synagogues.map(s=>`<option value="${s}">${s}</option>`).join('')}
+          </select>
+          <span id="regCount" style="color:var(--text-dim)"></span>
+        </div>
+        <div class="card"><div id="regList"></div></div>`;
+      refresh();
+      renderReg();
+    };
+    window.renderReg = () => {
+      const filter = document.getElementById('synFilter').value;
+      const rows = filter ? currentReg.filter(r=>r.synagogue===filter) : currentReg;
+      document.getElementById('regCount').textContent = `(${rows.length} רשומים)`;
+      const el = document.getElementById('regList');
+      if (!rows.length) { el.className='empty'; el.textContent='אין רשומים'; refresh(); return; }
+      el.className='';
+      el.innerHTML = `<table><thead><tr><th>שם</th><th>טלפון</th><th>בית כנסת</th><th>קופון</th><th>תאריך</th></tr></thead>
+        <tbody>${rows.map(r=>`<tr>
+          <td>${r.contact_id ? `<span class="link" onclick="cardModal(${r.contact_id})">${r.name||'—'}</span>` : (r.name||'—')}</td>
+          <td>${r.phone||'—'}</td><td>${r.synagogue||'—'}</td>
+          <td>${r.coupon?`<b>${r.coupon}</b>`:'—'}</td><td>${fmtDate(r.created_at)}</td></tr>`).join('')}</tbody></table>`;
       refresh();
     };
 
