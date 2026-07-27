@@ -33,7 +33,12 @@ const REC = {
 };
 
 const REC_DIR = `${DIR}/recordings`;
-const benefitRec = (b) => b.recording || `${DIR}/Benefits/${b.id}`;
+// נתיב להקלטת שם ההטבה — תמיד מלא (עם slash מוביל)
+const benefitRec = (b) => {
+  const rec = b.recording || `Benefits/${b.id}`;
+  // אם כבר יש slash מוביל — משאיר כמו שהוא, אחרת מוסיף עם DIR
+  return rec.startsWith('/') ? rec : `${DIR}/${rec}`;
+};
 
 router.all('/', async (req, res) => {
   const p = { ...req.query, ...req.body };
