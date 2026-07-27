@@ -229,7 +229,7 @@
       if (!benefits.length) { el.innerHTML = '<p style="color:var(--text-dim)">אין הטבות זמינות כרגע</p>'; return; }
       el.innerHTML = benefits.map(b => {
         const isOrdered = orderedIds.has(b.id);
-        return `<div class="benefit-item ${isOrdered?'ordered':''}" data-id="${b.id}" onclick="${isOrdered?'':'selectBenefit('+b.id+')'}">
+        return `<div class="benefit-item ${isOrdered?'ordered':''}" data-id="${b.id}" data-ordered="${isOrdered}">
           <div class="benefit-name">${b.name}</div>
           <div class="benefit-meta">
             <span>${b.type==='coupon'?'קופון':'הרשמה'}</span>
@@ -239,6 +239,14 @@
           </div>
         </div>`;
       }).join('');
+
+      // אירועי לחיצה דרך JS
+      el.querySelectorAll('.benefit-item').forEach(item => {
+        item.addEventListener('click', () => {
+          if (item.dataset.ordered === 'true') return;
+          selectBenefit(parseInt(item.dataset.id));
+        });
+      });
     }
 
     // ── בחירת הטבה ──
