@@ -26,7 +26,7 @@ export function read({ message, varName, type = 'Digits', reread = true, confirm
   if (type === 'Digits' || type === 'Number') {
     const yesNo = reread ? 'yes' : 'no';
     const confirmVal = confirm ? 'yes' : 'Ok';
-    return `read=${msg}=${varName},,,,${type},${yesNo},,,,,,,,${confirmVal}`;
+    return `read=${msg}=${varName},,no,,,${type},${yesNo},,,,,,,,${confirmVal}`;
   }
   // record
   return `read=${msg}=${varName},,${type}${extra ? ','+extra : ''}`;
