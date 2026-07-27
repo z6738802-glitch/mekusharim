@@ -28,7 +28,7 @@ const REC = {
   unitsThanks:    `${DIR}/017`, // "יחידות, תודה"
   recordID:       `${DIR}/018`, // "אנא הקלט את תעודות הזהות"
   couponWarning:  `${DIR}/019`, // "שים לב הטבה זו מסוג קופון, יש לשמור את הקוד"
-  replayMenu:     `${DIR}/020`, // "לשמיעה חוזרת הקש 1, לסיום הקש 2"
+  welcomeMsg:     `${DIR}/022`, // הסבר לפני תפריט ההטבות
   deleteMenu:     `${DIR}/021`, // "למחיקה הקש 1, לביטול הקש 2"
 };
 
@@ -156,9 +156,9 @@ router.all('/', async (req, res) => {
   }
 });
 
-// תפריט בחירת הטבה
+// תפריט בחירת הטבה — עם הקלטת הסבר לפני
 function buildMenu(benefits) {
-  const items = [];
+  const items = [file(REC.welcomeMsg)];
   benefits.forEach((b, i) => {
     items.push(file(REC.choosePrefix));
     items.push(file(benefitRec(b)));
