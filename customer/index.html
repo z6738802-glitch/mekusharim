@@ -278,7 +278,7 @@
     async function cancelOrder(benefitId) {
       if (!confirm('לבטל את ההזמנה?')) return;
       try {
-        await api(`/order/${currentPhone}/${benefitId}`, { method: 'DELETE' });
+        await api(`/cancel/${currentPhone}/${benefitId}`);
         await loadPage();
       } catch(e) {
         alert('אירעה שגיאה בביטול');
@@ -288,7 +288,7 @@
     // ── שינוי הזמנה (מאפס ובוחר מחדש) ──
     async function changeOrder(benefitId) {
       try {
-        await api(`/order/${currentPhone}/${benefitId}`, { method: 'DELETE' });
+        await api(`/cancel/${currentPhone}/${benefitId}`);
         await loadPage();
         // גלול לתפריט הבחירה
         document.getElementById('benefitsList').scrollIntoView({ behavior: 'smooth' });
@@ -321,10 +321,8 @@
       document.getElementById('orderError').innerHTML = '';
 
       try {
-        const result = await api('/order', {
-          method: 'POST',
-          body: JSON.stringify({ phone: currentPhone, benefit_id: selectedBenefit.id, qty, id_numbers: idNumbers })
-        });
+        const params = new URLSearchParams({ phone: currentPhone, benefit_id: selectedBenefit.id, qty, id_numbers: idNumbers });
+        const result = await api(`/order?${params}`);
 
         // הצג אישור
         document.getElementById('orderDetails').classList.add('hidden');

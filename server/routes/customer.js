@@ -48,9 +48,9 @@ router.get('/my/:phone', async (req, res) => {
 });
 
 // ── הזמנה ──
-router.post('/order', async (req, res) => {
-  console.log('ORDER body:', JSON.stringify(req.body));
-  const { phone, benefit_id: bid, qty, id_numbers } = req.body;
+router.get('/order', async (req, res) => {
+  console.log('ORDER query:', JSON.stringify(req.query));
+  const { phone, benefit_id: bid, qty, id_numbers } = req.query;
   const benefit_id = parseInt(bid, 10);
 
   if (!phone || !benefit_id || !qty) {
@@ -115,7 +115,7 @@ router.post('/order', async (req, res) => {
 });
 
 // ── ביטול הזמנה ──
-router.delete('/order/:phone/:benefit_id', async (req, res) => {
+router.get('/cancel/:phone/:benefit_id', async (req, res) => {
   const { phone, benefit_id } = req.params;
   await C.releaseCoupons(benefit_id, phone);
   await B.removeAllSelections(benefit_id, phone);
