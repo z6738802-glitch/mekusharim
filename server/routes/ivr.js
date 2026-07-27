@@ -85,7 +85,7 @@ router.all('/', async (req, res) => {
         await B.removeAllSelections(other.benefit_id, phone);
         await C.releaseCoupons(other.benefit_id, phone);
       } else {
-        return send(res, buildMenu(benefits));
+        return send(res, hangup());
       }
     }
 
@@ -214,8 +214,8 @@ async function handleExisting(res, benefit, phone, p) {
       await B.removeAllSelections(benefit.id, phone);
       return send(res, respond(play(file(REC.cancelled)), hangup()));
     }
-    // 3 = חזרה לתפריט
-    return send(res, buildMenu(await B.getActiveBenefits()));
+    // 3 = חזרה לשלוחה ראשית
+    return send(res, hangup());
   }
 
   // הרשמה: שמע 003 + שם הטבה + תפריט מחיקה (021)
@@ -230,8 +230,8 @@ async function handleExisting(res, benefit, phone, p) {
     await B.removeAllSelections(benefit.id, phone);
     return send(res, respond(play(file(REC.cancelled)), hangup()));
   }
-  // 2 = חזרה
-  return send(res, buildMenu(await B.getActiveBenefits()));
+  // 2 = חזרה לשלוחה ראשית
+  return send(res, hangup());
 }
 
 // הקצאת קופונים + השמעה חוזרת
