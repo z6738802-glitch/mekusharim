@@ -33,7 +33,7 @@ export function read({ message, varName, type = 'Digits', reread = true, confirm
 }
 
 export const goToFolder = (target) => `go_to_folder=${target}`;
-export const hangup = () => `go_to_folder=hangup`;
+export const hangup = () => `go_to_folder=/`;
 
 export function respond(...lines) {
   return lines.filter(Boolean).join('&');
