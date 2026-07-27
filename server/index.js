@@ -10,6 +10,12 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// debug log
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path}`);
+  next();
+});
+
 // בריאות
 app.get('/health', (req, res) => res.json({ ok: true, service: 'mekusharim' }));
 
