@@ -98,11 +98,11 @@ router.all('/ivr', async (req, res) => {
 
     // שלב 7: הקלטת ת"ז (חובה)
     if (p.recPath === undefined) {
-      const recFileName = `${phone}_${Date.now()}`;
       return send(res, read({
         message: [file(REC.recordID)],
         varName: 'recPath',
-        type: `record,${REC_DIR}/${recFileName},no,yes,yes`,
+        type: 'record',
+        extra: `${REC_DIR},no,yes,yes`,
       }));
     }
 

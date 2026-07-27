@@ -41,13 +41,18 @@ export function play(...items) {
 }
 
 /**
- * השמעה + קליטת הקשה.
- * read=<הודעה>=<var>,<default>,<min>,<max>,<type>,<reread>
+ * השמעה + קליטת קלט.
+ * לסוג Digits/Number: read=הודעה=var,,,,Digits,yes
+ * לסוג record: read=הודעה=var,,record,/path,no,yes,yes
  */
-export function read({ message, varName, type = 'Digits', reread = true }) {
+export function read({ message, varName, type = 'Digits', reread = true, extra = '' }) {
   const msg = message.join('.');
-  const yesNo = reread ? 'yes' : 'no';
-  return `read=${msg}=${varName},,,,${type},${yesNo}`;
+  if (type === 'Digits' || type === 'Number') {
+    const yesNo = reread ? 'yes' : 'no';
+    return `read=${msg}=${varName},,,,${type},${yesNo}`;
+  }
+  // record ופורמטים מיוחדים — extra מכיל את הפרמטרים הנוספים
+  return `read=${msg}=${varName},,${type}${extra ? ','+extra : ''}`;
 }
 
 /** מעבר לשלוחה אחרת */
