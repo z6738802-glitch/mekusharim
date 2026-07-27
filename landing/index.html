@@ -29,31 +29,48 @@
       background: radial-gradient(ellipse at center top, var(--burgundy) 0%, var(--dark) 70%);
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      text-align: center; padding: 40px 20px;
+      text-align: center; padding: 40px 20px 80px;
       position: relative; overflow: hidden;
     }
     .hero::before {
       content: ''; position: absolute; inset: 0;
       background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23D4A017' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
     }
-    .logo-wrap { position: relative; z-index: 1; margin-bottom: 16px; }
-    .logo-wrap img { width: 140px; filter: drop-shadow(0 0 30px rgba(212,160,23,0.5)); }
+    .hero-inner {
+      display: flex; align-items: center; justify-content: center;
+      gap: 48px; flex-wrap: wrap; position: relative; z-index: 1;
+      max-width: 1100px;
+    }
+    .hero-mascot {
+      width: clamp(240px, 35vw, 420px);
+      filter: drop-shadow(0 20px 40px rgba(0,0,0,0.5));
+      animation: floatIn 1s ease forwards;
+      opacity: 0; transform: translateX(40px);
+    }
+    @keyframes floatIn {
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .hero-text { text-align: right; }
+    .hero-badge {
+      display: inline-block; padding: 6px 18px;
+      background: rgba(212,160,23,0.15); border: 1px solid rgba(212,160,23,0.4);
+      border-radius: 20px; font-size: 13px; color: var(--gold);
+      margin-bottom: 16px; letter-spacing: 1px;
+    }
     .hero-title {
-      font-size: clamp(2.4rem, 8vw, 5rem); font-weight: 900;
-      line-height: 1.1; position: relative; z-index: 1;
+      font-size: clamp(2.4rem, 6vw, 4.5rem); font-weight: 900;
+      line-height: 1.1;
       text-shadow: 0 2px 20px rgba(0,0,0,0.5);
     }
     .hero-title span { color: var(--gold); }
     .hero-sub {
-      font-size: clamp(1rem, 3vw, 1.4rem); font-weight: 300;
-      color: rgba(253,246,227,0.75); margin-top: 14px;
-      position: relative; z-index: 1;
+      font-size: clamp(1rem, 2.5vw, 1.2rem); font-weight: 300;
+      color: rgba(253,246,227,0.7); margin-top: 12px;
     }
     .hero-cta {
-      margin-top: 36px; position: relative; z-index: 1;
-      display: inline-block; padding: 18px 48px;
+      margin-top: 32px; display: inline-block; padding: 18px 48px;
       background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
-      color: var(--burgundy-dark); font-weight: 900; font-size: 1.2rem;
+      color: var(--burgundy-dark); font-weight: 900; font-size: 1.15rem;
       border-radius: 50px; text-decoration: none;
       box-shadow: 0 8px 32px rgba(212,160,23,0.4);
       transition: transform .2s, box-shadow .2s;
@@ -61,8 +78,8 @@
     }
     .hero-cta:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(212,160,23,0.6); }
     .scroll-hint {
-      position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
-      color: rgba(253,246,227,0.4); font-size: 13px; z-index: 1;
+      position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
+      color: rgba(253,246,227,0.3); font-size: 13px; z-index: 1;
       animation: bounce 2s infinite;
     }
     @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(8px)} }
@@ -152,14 +169,17 @@
 
   <!-- HERO -->
   <section class="hero">
-    <div class="logo-wrap">
-      <img src="images/logo.png" alt="מקושרים" onerror="this.style.display='none'">
+    <div class="hero-inner">
+      <img class="hero-mascot" src="images/hero_mascot.png" alt="מקושרים">
+      <div class="hero-text">
+        <div class="hero-badge">קדשי סטאלין קארלין</div>
+        <h1 class="hero-title">
+          הקיץ הזה —<br><span>מגיע לכם</span>
+        </h1>
+        <p class="hero-sub">הטבות בלעדיות למקושרים</p>
+        <a href="/my" class="hero-cta">להזמנת ההטבה שלי</a>
+      </div>
     </div>
-    <h1 class="hero-title">
-      הקיץ הזה —<br><span>מגיע לכם</span>
-    </h1>
-    <p class="hero-sub">הטבות בלעדיות למקושרים</p>
-    <a href="/my" class="hero-cta">להזמנת ההטבה שלי</a>
     <div class="scroll-hint">גלול למטה לגלות ▼</div>
   </section>
 
