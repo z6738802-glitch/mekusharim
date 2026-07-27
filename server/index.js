@@ -28,6 +28,9 @@ app.use('/admin', adminRouter);
 // לקוחות (ציבורי)
 app.use('/api', customerRouter);
 
+// debug
+app.post('/api/test', (req, res) => res.json({ ok: true }));
+
 // ממשק ניהול סטטי
 app.use('/panel', express.static('admin'));
 
