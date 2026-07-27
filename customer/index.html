@@ -191,13 +191,22 @@
       let html = '';
       if (myData.selections.length) {
         html += `<div class="section-h">ההזמנות שלי</div>`;
+        // מקבץ לפי benefit_id (כי יכול להיות כמה שורות לאותה הטבה)
+        const grouped = {};
         myData.selections.forEach(s => {
-          html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+          if (!grouped[s.benefit_id]) grouped[s.benefit_id] = { ...s, count: 0 };
+          grouped[s.benefit_id].count++;
+        });
+        Object.values(grouped).forEach(s => {
+          html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)">
             <div>
               <div style="font-weight:600">${s.name}</div>
-              <div style="color:var(--text-dim);font-size:13px">${fmtDate(s.created_at)}</div>
+              <div style="color:var(--text-dim);font-size:13px">${s.count} יחידות | ${fmtDate(s.created_at)}</div>
             </div>
-            <span class="badge badge-green">${s.type==='coupon'?'קופון':'נרשם'}</span>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-ghost" style="width:auto;padding:6px 10px;font-size:13px" onclick="changeOrder(${s.benefit_id})">שנה</button>
+              <button class="btn btn-danger" style="width:auto;padding:6px 10px;font-size:13px" onclick="cancelOrder(${s.benefit_id})">בטל</button>
+            </div>
           </div>`;
         });
       }
@@ -218,9 +227,9 @@
       const orderedIds = new Set(myData.selections.map(s => s.benefit_id));
       const el = document.getElementById('benefitsList');
       if (!benefits.length) { el.innerHTML = '<p style="color:var(--text-dim)">אין הטבות זמינות כרגע</p>'; return; }
-      el.innerHTML = benefits.map((b, i) => {
-        const isOrdered = orderedIds.has(b.benefit_id || b.id);
-        return `<div class="benefit-item ${isOrdered?'ordered':''}" onclick="${isOrdered?'':'selectBenefit('+b.id+')'}">
+      el.innerHTML = benefits.map(b => {
+        const isOrdered = orderedIds.has(b.id);
+        return `<div class="benefit-item ${isOrdered?'ordered':''}" data-id="${b.id}" onclick="${isOrdered?'':'selectBenefit('+b.id+')'}">
           <div class="benefit-name">${b.name}</div>
           <div class="benefit-meta">
             <span>${b.type==='coupon'?'קופון':'הרשמה'}</span>
@@ -237,25 +246,47 @@
       selectedBenefit = allBenefits.find(b => b.id === id);
       if (!selectedBenefit) return;
 
-      // סמן הנבחרת
       document.querySelectorAll('.benefit-item').forEach(el => el.classList.remove('selected'));
-      event.currentTarget.classList.add('selected');
+      document.querySelector(`.benefit-item[data-id="${id}"]`)?.classList.add('selected');
 
-      // הצג פרטי הזמנה
       document.getElementById('orderDetails').classList.remove('hidden');
       document.getElementById('pageSuccess').classList.add('hidden');
       document.getElementById('maxQty').textContent = selectedBenefit.per_family;
       document.getElementById('qtyInput').max = selectedBenefit.per_family;
       document.getElementById('qtyInput').value = 1;
       document.getElementById('orderError').innerHTML = '';
+      document.getElementById('idNumbers').value = '';
 
-      // אם קופון — הצג אזהרה
       if (selectedBenefit.type === 'coupon') {
         document.getElementById('orderError').innerHTML = `<div class="error" style="background:rgba(245,166,35,.1);border-color:rgba(245,166,35,.3);color:var(--amber)">
           ${icon('alert-triangle')} שים לב: הטבה זו מסוג קופון — יש לשמור את הקוד שתקבל
         </div>`;
       }
       refresh();
+      document.getElementById('orderDetails').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // ── ביטול הזמנה ──
+    async function cancelOrder(benefitId) {
+      if (!confirm('לבטל את ההזמנה?')) return;
+      try {
+        await api(`/order/${currentPhone}/${benefitId}`, { method: 'DELETE' });
+        await loadPage();
+      } catch(e) {
+        alert('אירעה שגיאה בביטול');
+      }
+    }
+
+    // ── שינוי הזמנה (מאפס ובוחר מחדש) ──
+    async function changeOrder(benefitId) {
+      try {
+        await api(`/order/${currentPhone}/${benefitId}`, { method: 'DELETE' });
+        await loadPage();
+        // גלול לתפריט הבחירה
+        document.getElementById('benefitsList').scrollIntoView({ behavior: 'smooth' });
+      } catch(e) {
+        alert('אירעה שגיאה');
+      }
     }
 
     function changeQty(delta) {
