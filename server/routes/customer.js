@@ -64,7 +64,7 @@ router.get('/order', async (req, res) => {
   if (!auth.rows.length) return res.status(401).json({ error: 'not_authorized' });
 
   const benefit = await B.getBenefit(benefit_id);
-  if (!benefit || !benefit.active) return res.status(404).json({ error: 'benefit not found' });
+  if (!benefit) return res.status(404).json({ error: 'benefit not found' });
 
   // בדיקה: כבר הזמין את אותה הטבה?
   const already = await B.familyCount(benefit_id, phone);
