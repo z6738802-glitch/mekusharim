@@ -92,23 +92,26 @@ router.all('/', async (req, res) => {
       }
     }
 
-    // שלב 4: אזהרת קופון (לפני כמות)
-    if (chosen.type === 'coupon' && (!p.couponWarned || p.couponWarned === "None")) {
+    // שלב 4: אזהרת קופון + בחירת כמות — בקריאה אחת
+    if (chosen.type === 'coupon' && (!p.qty || p.qty === "None")) {
       return send(res, read({
-        message: [file(REC.couponWarning)],
-        varName: 'couponWarned',
+        message: [
+          file(REC.couponWarning),
+          file(REC.howMany),
+          number(chosen.per_family),
+          file(REC.units),
+        ],
+        varName: 'qty',
       }));
     }
 
-    // שלב 5: בחירת כמות
+    // שלב 5: בחירת כמות (הרשמה רגילה)
     if ((!p.qty || p.qty === "None")) {
       return send(res, read({
         message: [file(REC.howMany), number(chosen.per_family), file(REC.units)],
         varName: 'qty',
       }));
     }
-
-    const qty = parseInt(p.qty, 10);
     if (isNaN(qty) || qty < 1 || qty > chosen.per_family) {
       return send(res, respond(play(file(REC.overQuota)), hangup()));
     }
