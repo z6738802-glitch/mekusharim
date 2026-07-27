@@ -174,6 +174,23 @@ router.delete('/coupons/:id', async (req, res) => {
   res.json({ ok: true });
 });
 
+// הורדת הקלטת ת"ז מימות (proxy)
+router.get('/recording', async (req, res) => {
+  const path = req.query.path;
+  if (!path) return res.status(400).json({ error: 'missing path' });
+  try {
+    const url = `https://www.call2all.co.il/ym/api/DownloadFile?token=${encodeURIComponent(process.env.YEMOT_TOKEN)}&path=${encodeURIComponent(path)}`;
+    const r = await fetch(url);
+    if (!r.ok) return res.status(404).json({ error: 'not found' });
+    res.setHeader('Content-Type', 'audio/wav');
+    res.setHeader('Content-Disposition', `inline; filename="recording.wav"`);
+    const buf = await r.arrayBuffer();
+    res.send(Buffer.from(buf));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ════════════ כרטסת לקוח ════════════
 // כל המידע על לקוח בודד: פרטים + הזמנות + קופונים
 router.get('/contacts/:id/card', async (req, res) => {
@@ -183,7 +200,7 @@ router.get('/contacts/:id/card', async (req, res) => {
 
   // כל ההזמנות של הלקוח (לפי טלפון)
   const { rows: selections } = await query(
-    `select s.id, s.created_at, b.id as benefit_id, b.name as benefit_name, b.type
+    `select s.id, s.created_at, s.recording_path, b.id as benefit_id, b.name as benefit_name, b.type
        from selections s join benefits b on b.id = s.benefit_id
       where s.phone = $1 order by s.created_at desc`,
     [contact.phone]

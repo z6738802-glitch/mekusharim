@@ -64,11 +64,11 @@ export async function customerSelections(phone) {
   return rows;
 }
 
-/** רישום בחירה חדשה */
-export async function addSelection(benefitId, phone) {
+/** רישום בחירה חדשה (עם נתיב הקלטה אופציונלי) */
+export async function addSelection(benefitId, phone, recordingPath = null) {
   await query(
-    `insert into selections (benefit_id, phone) values ($1, $2)`,
-    [benefitId, phone]
+    `insert into selections (benefit_id, phone, recording_path) values ($1, $2, $3)`,
+    [benefitId, phone, recordingPath]
   );
 }
 

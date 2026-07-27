@@ -56,3 +56,6 @@ create index idx_coupons_benefit on mekusharim.coupons(benefit_id);
 create index idx_coupons_phone on mekusharim.coupons(phone);
 -- קופון פנוי = phone is null. שאילתת הקצאה משתמשת ב-FOR UPDATE SKIP LOCKED
 create index idx_coupons_available on mekusharim.coupons(benefit_id) where phone is null;
+
+-- migration: הוספת עמודת נתיב הקלטה לטבלת selections
+alter table mekusharim.selections add column if not exists recording_path text;

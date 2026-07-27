@@ -26,7 +26,11 @@ const REC = {
   noStock:        `${DIR}/015`, // "אין מספיק מלאי"
   approved:       `${DIR}/016`, // "אושרו"
   unitsThanks:    `${DIR}/017`, // "יחידות, תודה"
+  recordID:       `${DIR}/018`, // "אנא הקלט את מספרי תעודת הזהות של הילדים"
 };
+
+// תיקיית הקלטות ת"ז בימות
+const REC_DIR = process.env.YEMOT_MAIN_DIR ? `${DIR}/recordings` : '/mekusharim/recordings';
 
 const benefitRec = (b) => b.recording || `${DIR}/Benefits/${b.id}`;
 
@@ -92,13 +96,23 @@ router.all('/ivr', async (req, res) => {
       }
     }
 
-    // שלב 7: ביצוע
+    // שלב 7: הקלטת ת"ז (חובה)
+    if (p.recPath === undefined) {
+      const recFileName = `${phone}_${Date.now()}`;
+      return send(res, read({
+        message: [file(REC.recordID)],
+        varName: 'recPath',
+        type: `record,${REC_DIR}/${recFileName},no,yes,yes`,
+      }));
+    }
+
+    // שלב 8: ביצוע עם שמירת נתיב ההקלטה
+    const recordingPath = p.recPath || null;
     if (chosen.type === 'coupon') {
-      return assignCoupons(res, chosen, phone, qty);
+      return assignCoupons(res, chosen, phone, qty, recordingPath);
     } else {
-      // הרשמה — מוסיף qty רשומות
       for (let i = 0; i < qty; i++) {
-        await B.addSelection(chosen.id, phone);
+        await B.addSelection(chosen.id, phone, recordingPath);
       }
       return send(res, respond(
         play(file(REC.approved), number(qty), file(REC.unitsThanks)),
@@ -169,10 +183,10 @@ async function handleExisting(res, benefit, phone, p) {
 }
 
 // הקצאת קופונים בכמות
-async function assignCoupons(res, benefit, phone, qty) {
+async function assignCoupons(res, benefit, phone, qty, recordingPath = null) {
   const codes = [];
   for (let i = 0; i < qty; i++) {
-    await B.addSelection(benefit.id, phone);
+    await B.addSelection(benefit.id, phone, recordingPath);
     const code = await C.assignCoupon(benefit.id, phone);
     if (code === null) {
       // אזל המלאי באמצע — מבטל הכל

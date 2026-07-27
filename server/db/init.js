@@ -28,10 +28,11 @@ create table if not exists mekusharim.benefits (
 );
 
 create table if not exists mekusharim.selections (
-  id          bigserial primary key,
-  phone       text not null,
-  benefit_id  bigint not null references mekusharim.benefits(id) on delete cascade,
-  created_at  timestamptz not null default now()
+  id             bigserial primary key,
+  phone          text not null,
+  benefit_id     bigint not null references mekusharim.benefits(id) on delete cascade,
+  recording_path text,
+  created_at     timestamptz not null default now()
 );
 create index if not exists idx_selections_phone on mekusharim.selections(phone);
 create index if not exists idx_selections_benefit on mekusharim.selections(benefit_id);
@@ -47,6 +48,9 @@ create table if not exists mekusharim.coupons (
 create index if not exists idx_coupons_benefit on mekusharim.coupons(benefit_id);
 create index if not exists idx_coupons_phone on mekusharim.coupons(phone);
 create index if not exists idx_coupons_available on mekusharim.coupons(benefit_id) where phone is null;
+
+-- migration: עמודות שנוספו לאחר יצירה ראשונית
+alter table mekusharim.selections add column if not exists recording_path text;
 `;
 
 export async function initDb() {

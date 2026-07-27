@@ -348,11 +348,15 @@
             <div class="stat"><div class="num" style="font-size:18px">${c.synagogue||'—'}</div><div class="lbl">בית כנסת</div></div>
           </div>
           <div class="section-h">הזמנות (${data.selections.length})</div>
-          <table><thead><tr><th>הטבה</th><th>סוג</th><th>תאריך</th><th></th></tr></thead>
+          <table><thead><tr><th>הטבה</th><th>סוג</th><th>כמות</th><th>הקלטה</th><th>תאריך</th><th></th></tr></thead>
             <tbody>${data.selections.length ? data.selections.map(s=>`<tr>
-              <td>${s.benefit_name}</td><td>${s.type==='coupon'?'קופון':'הרשמה'}</td><td>${fmtDate(s.created_at)}</td>
-              <td><button class="btn btn-danger" onclick="delSelection(${s.id},${id})" title="ביטול הזמנה">${icon('trash-2')}</button></td></tr>`).join('')
-              : '<tr><td colspan="4" style="color:var(--text-dim)">אין הזמנות</td></tr>'}</tbody></table>
+              <td>${s.benefit_name}</td><td>${s.type==='coupon'?'קופון':'הרשמה'}</td>
+              <td>1</td>
+              <td>${s.recording_path ? `<button class="btn btn-ghost" style="padding:6px" onclick="playRec('${s.recording_path}')" title="השמע הקלטה">${icon('play')}</button>` : '—'}</td>
+              <td>${fmtDate(s.created_at)}</td>
+              <td><button class="btn btn-danger" onclick="delSelection(${s.id},${id})" title="ביטול">${icon('trash-2')}</button></td></tr>`).join('')
+              : '<tr><td colspan="6" style="color:var(--text-dim)">אין הזמנות</td></tr>'}</tbody></table>
+          <audio id="recAudio" controls style="width:100%;margin-top:12px;display:none"></audio>
           ${data.coupons.length ? `<div class="section-h">קופונים</div>
             <table><thead><tr><th>הטבה</th><th>קוד</th><th>תאריך</th></tr></thead>
             <tbody>${data.coupons.map(cp=>`<tr><td>${cp.benefit_name}</td><td><b>${cp.code}</b></td><td>${fmtDate(cp.assigned_at)}</td></tr>`).join('')}</tbody></table>` : ''}
@@ -367,6 +371,12 @@
       refresh();
     };
     window.delSelection = async (sid, cid) => { if(confirm('לבטל את ההזמנה? קופון משויך יוחזר למלאי.')){ await api('/selections/'+sid,{method:'DELETE'}); cardModal(cid); }};
+    window.playRec = (path) => {
+      const audio = document.getElementById('recAudio');
+      audio.src = `${API}/recording?path=${encodeURIComponent(path)}`;
+      audio.style.display = 'block';
+      audio.play();
+    };
     window.addManualSelection = async (cid) => {
       const bid = document.getElementById('manualBenefit').value;
       await api('/contacts/'+cid+'/selection', { method:'POST', body: JSON.stringify({ benefit_id: +bid }) });
