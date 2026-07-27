@@ -66,31 +66,26 @@ router.all('/', async (req, res) => {
       return handleExisting(res, chosen, phone, p);
     }
 
-    // שלב 3: כבר בחר הטבה אחרת (שאינה ניתנת לצבירה)?
-    if (!chosen.stackable) {
-      const existing = await B.customerSelections(phone);
-      const otherActive = existing.filter(s => s.benefit_id !== chosen.id && !s.stackable);
-      if (otherActive.length > 0) {
-        const other = otherActive[0];
-        // שמע: "כבר בחרת את ההטבה" + שם ההטבה האחרת + "לשינוי 1, לביטול 2"
-        if ((!p.switchAction || p.switchAction === "None")) {
-          return send(res, read({
-            message: [
-              file(REC.alreadyChose),
-              file(benefitRec(other)),
-              file(REC.changeMenu),
-            ],
-            varName: 'switchAction',
-          }));
-        }
-        if (p.switchAction === '1') {
-          // מוחק את הישן וממשיך לבחירה החדשה
-          await B.removeAllSelections(other.benefit_id, phone);
-          await C.releaseCoupons(other.benefit_id, phone);
-        } else {
-          // ביטול — חוזר לתפריט
-          return send(res, buildMenu(benefits));
-        }
+    // שלב 3: בדיקת צבירה לפי קבוצות
+    const check = await B.canTake(chosen, phone);
+    if (!check.ok && check.reason === 'has_other_benefit') {
+      const other = check.other;
+      if ((!p.switchAction || p.switchAction === "None")) {
+        return send(res, read({
+          message: [
+            file(REC.alreadyChose),
+            file(benefitRec(other)),
+            file(REC.changeMenu),
+          ],
+          varName: 'switchAction',
+        }));
+      }
+      if (p.switchAction === '1') {
+        // מוחק את הישן וממשיך
+        await B.removeAllSelections(other.benefit_id, phone);
+        await C.releaseCoupons(other.benefit_id, phone);
+      } else {
+        return send(res, buildMenu(benefits));
       }
     }
 
