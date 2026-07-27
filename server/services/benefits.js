@@ -55,7 +55,7 @@ export async function totalTaken(benefitId) {
 /** כל הבחירות הפעילות של הלקוח (לבדיקת "כבר בחר הטבה") */
 export async function customerSelections(phone) {
   const { rows } = await query(
-    `select s.benefit_id, b.name, b.type, b.stackable
+    `select s.benefit_id, s.benefit_id as id, b.name, b.recording, b.type, b.stackable
        from selections s
        join benefits b on b.id = s.benefit_id
       where s.phone = $1`,
