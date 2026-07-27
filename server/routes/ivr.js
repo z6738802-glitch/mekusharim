@@ -105,13 +105,15 @@ router.all('/', async (req, res) => {
       }));
     }
 
-    // שלב 5: בחירת כמות (הרשמה רגילה)
+    // שלב 5: בחירת כמות (הרשמה רגילה — לקופון כבר טופל למעלה)
     if ((!p.qty || p.qty === "None")) {
       return send(res, read({
         message: [file(REC.howMany), number(chosen.per_family), file(REC.units)],
         varName: 'qty',
       }));
     }
+
+    const qty = parseInt(p.qty, 10);
     if (isNaN(qty) || qty < 1 || qty > chosen.per_family) {
       return send(res, respond(play(file(REC.overQuota)), hangup()));
     }
