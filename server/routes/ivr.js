@@ -48,7 +48,7 @@ router.all('/', async (req, res) => {
     const benefits = await B.getActiveBenefits();
 
     // שלב 1: בחירת הטבה
-    if (p.choice === undefined) {
+    if ((!p.choice || p.choice === "None")) {
       return send(res, buildMenu(benefits));
     }
 
@@ -71,7 +71,7 @@ router.all('/', async (req, res) => {
       if (otherActive.length > 0) {
         const other = otherActive[0];
         // שמע: "כבר בחרת את ההטבה" + שם ההטבה האחרת + "לשינוי 1, לביטול 2"
-        if (p.switchAction === undefined) {
+        if ((!p.switchAction || p.switchAction === "None")) {
           return send(res, read({
             message: [
               file(REC.alreadyChose),
@@ -93,7 +93,7 @@ router.all('/', async (req, res) => {
     }
 
     // שלב 4: אזהרת קופון (לפני כמות)
-    if (chosen.type === 'coupon' && p.couponWarned === undefined) {
+    if (chosen.type === 'coupon' && (!p.couponWarned || p.couponWarned === "None")) {
       return send(res, read({
         message: [file(REC.couponWarning)],
         varName: 'couponWarned',
@@ -101,7 +101,7 @@ router.all('/', async (req, res) => {
     }
 
     // שלב 5: בחירת כמות
-    if (p.qty === undefined) {
+    if ((!p.qty || p.qty === "None")) {
       return send(res, read({
         message: [file(REC.howMany), number(chosen.per_family), file(REC.units)],
         varName: 'qty',
@@ -122,7 +122,7 @@ router.all('/', async (req, res) => {
     }
 
     // שלב 7: הקלטת ת"ז (חובה)
-    if (p.recPath === undefined) {
+    if ((!p.recPath || p.recPath === "None")) {
       return send(res, read({
         message: [file(REC.recordID)],
         varName: 'recPath',
@@ -167,7 +167,7 @@ function buildMenu(benefits) {
 async function handleExisting(res, benefit, phone, p) {
   if (benefit.type === 'coupon') {
     // קופון: שמע 003 + שם הטבה + 004 + תפריט קופון
-    if (p.couponAction === undefined) {
+    if ((!p.couponAction || p.couponAction === "None")) {
       return send(res, read({
         message: [
           file(REC.alreadyChose),
@@ -182,7 +182,7 @@ async function handleExisting(res, benefit, phone, p) {
     if (p.couponAction === '1') {
       // שמיעת קופונים + תפריט חזרה
       const codes = await C.getCustomerCoupons(benefit.id, phone);
-      if (p.replayAction === undefined) {
+      if ((!p.replayAction || p.replayAction === "None")) {
         const items = [file(REC.saveCouponNote)];
         for (const code of codes) {
           items.push(file(REC.yourCouponIs));
@@ -215,7 +215,7 @@ async function handleExisting(res, benefit, phone, p) {
   }
 
   // הרשמה: שמע 003 + שם הטבה + תפריט מחיקה (021)
-  if (p.deleteAction === undefined) {
+  if ((!p.deleteAction || p.deleteAction === "None")) {
     return send(res, read({
       message: [file(REC.alreadyChose), file(benefitRec(benefit)), file(REC.deleteMenu)],
       varName: 'deleteAction',
@@ -245,7 +245,7 @@ async function assignCoupons(res, benefit, phone, qty, recordingPath, p) {
   }
 
   // השמעת הקודים + תפריט חזרה
-  if (p.replayAction === undefined) {
+  if ((!p.replayAction || p.replayAction === "None")) {
     const items = [file(REC.saveCouponNote)];
     for (const code of codes) {
       items.push(file(REC.yourCouponIs));
