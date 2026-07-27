@@ -123,7 +123,7 @@ export async function canTake(benefit, phone) {
     }
     // הטבה עם קבוצה — בודק אם יש הטבה מקבוצה אחרת
     const otherGroup = otherSelections.find(
-      s => s.group_id !== benefit.group_id
+      s => String(s.group_id) !== String(benefit.group_id)
     );
     if (otherGroup) {
       return { ok: false, reason: 'has_other_benefit', other: otherGroup };
