@@ -72,6 +72,14 @@ export async function addSelection(benefitId, phone) {
   );
 }
 
+/** מחיקת כל הבחירות של לקוח בהטבה (לאיפוס לפני בחירה מחדש) */
+export async function removeAllSelections(benefitId, phone) {
+  await query(
+    `delete from selections where benefit_id = $1 and phone = $2`,
+    [benefitId, phone]
+  );
+}
+
 /** מחיקת בחירה */
 export async function removeSelection(benefitId, phone) {
   await query(
