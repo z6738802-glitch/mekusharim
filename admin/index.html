@@ -166,7 +166,10 @@
             <div class="field"><label>מגבלה למשפחה</label><input id="bFamily" type="number" value="${b.per_family??1}"></div>
           </div>
           <div class="row">
+            <div class="row">
             <div class="field"><label>סדר בתפריט</label><input id="bSort" type="number" value="${b.sort_order??0}"></div>
+            <div class="field"><label>מזהה קבוצה (ריק = עומד לבד)</label><input id="bGroup" type="number" value="${b.group_id??''}" placeholder="למשל 1 או 2"></div>
+          </div>
             <div class="field"><label>ניתן לצבור</label><select id="bStack">
               <option value="false" ${!b.stackable?'selected':''}>לא</option>
               <option value="true" ${b.stackable?'selected':''}>כן</option>
@@ -181,7 +184,7 @@
       refresh();
     };
     window.saveBenefit = async (id) => {
-      const body = { name: bName.value, type: bType.value, total_stock: +bStock.value, per_family: +bFamily.value, stackable: bStack.value === 'true', active: bActive.checked, sort_order: +bSort.value };
+      const body = { name: bName.value, type: bType.value, total_stock: +bStock.value, per_family: +bFamily.value, stackable: bStack.value === 'true', active: bActive.checked, sort_order: +bSort.value, group_id: document.getElementById('bGroup').value ? +document.getElementById('bGroup').value : null };
       if (id) await api('/benefits/'+id, { method:'PUT', body: JSON.stringify(body) });
       else await api('/benefits', { method:'POST', body: JSON.stringify(body) });
       closeModal(); pages.benefits();

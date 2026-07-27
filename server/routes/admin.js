@@ -107,21 +107,21 @@ router.get('/benefits', async (req, res) => {
 });
 
 router.post('/benefits', async (req, res) => {
-  const { name, type, total_stock, per_family, stackable, active, sort_order } = req.body;
+  const { name, type, total_stock, per_family, stackable, active, sort_order, group_id } = req.body;
   const { rows } = await query(
-    `insert into benefits (name, type, total_stock, per_family, stackable, active, sort_order)
-     values ($1,$2,$3,$4,$5,$6,$7) returning *`,
-    [name, type, total_stock || 0, per_family || 1, stackable || false, active ?? true, sort_order || 0]
+    `insert into benefits (name, type, total_stock, per_family, stackable, active, sort_order, group_id)
+     values ($1,$2,$3,$4,$5,$6,$7,$8) returning *`,
+    [name, type, total_stock || 0, per_family || 1, stackable || false, active ?? true, sort_order || 0, group_id || null]
   );
   res.json(rows[0]);
 });
 
 router.put('/benefits/:id', async (req, res) => {
-  const { name, type, total_stock, per_family, stackable, active, sort_order } = req.body;
+  const { name, type, total_stock, per_family, stackable, active, sort_order, group_id } = req.body;
   const { rows } = await query(
     `update benefits set name=$1, type=$2, total_stock=$3, per_family=$4,
-       stackable=$5, active=$6, sort_order=$7 where id=$8 returning *`,
-    [name, type, total_stock, per_family, stackable, active, sort_order, req.params.id]
+       stackable=$5, active=$6, sort_order=$7, group_id=$8 where id=$9 returning *`,
+    [name, type, total_stock, per_family, stackable, active, sort_order, group_id || null, req.params.id]
   );
   res.json(rows[0]);
 });

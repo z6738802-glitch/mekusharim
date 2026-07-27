@@ -12,7 +12,7 @@ export async function isAuthorized(phone) {
 /** רשימת ההטבות הפעילות, לפי סדר התפריט */
 export async function getActiveBenefits() {
   const { rows } = await query(
-    `select id, name, recording, type, total_stock, per_family, stackable
+    `select id, name, recording, type, total_stock, per_family, stackable, group_id
        from benefits
       where active = true
       order by sort_order, id`
@@ -23,7 +23,7 @@ export async function getActiveBenefits() {
 /** הטבה בודדת לפי מזהה */
 export async function getBenefit(benefitId) {
   const { rows } = await query(
-    `select id, name, recording, type, total_stock, per_family, stackable
+    `select id, name, recording, type, total_stock, per_family, stackable, group_id
        from benefits where id = $1`,
     [benefitId]
   );
@@ -55,7 +55,7 @@ export async function totalTaken(benefitId) {
 /** כל הבחירות הפעילות של הלקוח (לבדיקת "כבר בחר הטבה") */
 export async function customerSelections(phone) {
   const { rows } = await query(
-    `select s.benefit_id, s.benefit_id as id, b.name, b.recording, b.type, b.stackable
+    `select s.benefit_id, s.benefit_id as id, b.name, b.recording, b.type, b.stackable, b.group_id
        from selections s
        join benefits b on b.id = s.benefit_id
       where s.phone = $1`,
@@ -91,6 +91,11 @@ export async function removeSelection(benefitId, phone) {
 /**
  * בדיקה מלאה: האם הלקוח יכול לקחת את ההטבה הזו כעת.
  * מחזיר { ok: true } או { ok: false, reason: '...' }
+ *
+ * לוגיקת קבוצות:
+ * - אם ל-benefit יש group_id — הטבות באותה קבוצה ניתנות לצבירה
+ * - הטבות מקבוצות שונות — לא ניתן לצבור
+ * - הטבות בלי group_id (null) — עומדות לבד, לא ניתן לצבור עם אף אחת
  */
 export async function canTake(benefit, phone) {
   // 1. מלאי כללי (0 = ללא הגבלה)
@@ -107,14 +112,21 @@ export async function canTake(benefit, phone) {
     return { ok: false, reason: 'already_taken' };
   }
 
-  // 3. אם ההטבה אינה ניתנת לצבירה — בדוק שאין הטבה אחרת פעילה
-  if (!benefit.stackable) {
-    const existing = await customerSelections(phone);
-    const otherNonStackable = existing.filter(
-      (s) => s.benefit_id !== benefit.id && !s.stackable
+  // 3. בדיקת קבוצות
+  const existing = await customerSelections(phone);
+  const otherSelections = existing.filter(s => s.benefit_id !== benefit.id);
+
+  if (otherSelections.length > 0) {
+    if (benefit.group_id === null || benefit.group_id === undefined) {
+      // הטבה בלי קבוצה — לא ניתן לצבור עם שום דבר
+      return { ok: false, reason: 'has_other_benefit', other: otherSelections[0] };
+    }
+    // הטבה עם קבוצה — בודק אם יש הטבה מקבוצה אחרת
+    const otherGroup = otherSelections.find(
+      s => s.group_id !== benefit.group_id
     );
-    if (otherNonStackable.length > 0) {
-      return { ok: false, reason: 'has_other_benefit', other: otherNonStackable[0] };
+    if (otherGroup) {
+      return { ok: false, reason: 'has_other_benefit', other: otherGroup };
     }
   }
 

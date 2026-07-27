@@ -51,6 +51,7 @@ create index if not exists idx_coupons_available on mekusharim.coupons(benefit_i
 
 -- migration: עמודות שנוספו לאחר יצירה ראשונית
 alter table mekusharim.selections add column if not exists recording_path text;
+alter table mekusharim.benefits add column if not exists group_id integer;
 `;
 
 export async function initDb() {
