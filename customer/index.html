@@ -251,7 +251,7 @@
 
     // ── בחירת הטבה ──
     function selectBenefit(id) {
-      selectedBenefit = allBenefits.find(b => b.id === id);
+      selectedBenefit = allBenefits.find(b => String(b.id) === String(id));
       if (!selectedBenefit) return;
 
       document.querySelectorAll('.benefit-item').forEach(el => el.classList.remove('selected'));
