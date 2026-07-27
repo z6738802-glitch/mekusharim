@@ -49,6 +49,7 @@ router.get('/my/:phone', async (req, res) => {
 
 // ── הזמנה ──
 router.post('/order', async (req, res) => {
+  console.log('ORDER body:', JSON.stringify(req.body));
   const { phone, benefit_id: bid, qty, id_numbers } = req.body;
   const benefit_id = parseInt(bid, 10);
 
