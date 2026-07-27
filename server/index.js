@@ -14,7 +14,7 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/health', (req, res) => res.json({ ok: true, service: 'mekusharim' }));
 
 // שלוחת ה-IVR (ימות פונה לכאן)
-app.use('/', ivrRouter);
+app.use('/ivr', ivrRouter);
 
 // ניהול
 app.use('/admin', adminRouter);

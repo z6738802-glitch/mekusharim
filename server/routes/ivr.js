@@ -35,7 +35,7 @@ const REC = {
 const REC_DIR = `${DIR}/recordings`;
 const benefitRec = (b) => b.recording || `${DIR}/Benefits/${b.id}`;
 
-router.all('/ivr', async (req, res) => {
+router.all('/', async (req, res) => {
   const p = { ...req.query, ...req.body };
   const phone = p.ApiPhone;
 
