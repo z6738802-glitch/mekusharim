@@ -37,6 +37,9 @@ app.use('/panel', express.static('admin'));
 // פורטל לקוחות
 app.use('/my', express.static('customer'));
 
+// דף נחיתה
+app.use('/', express.static('landing'));
+
 const PORT = process.env.PORT || 3000;
 
 initDb()
