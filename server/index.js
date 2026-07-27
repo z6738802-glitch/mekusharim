@@ -2,6 +2,7 @@ import express from 'express';
 import 'dotenv/config';
 import ivrRouter from './routes/ivr.js';
 import adminRouter from './routes/admin.js';
+import customerRouter from './routes/customer.js';
 import { initDb } from './db/init.js';
 
 const app = express();
@@ -18,8 +19,14 @@ app.use('/', ivrRouter);
 // ניהול
 app.use('/admin', adminRouter);
 
+// לקוחות (ציבורי)
+app.use('/api', customerRouter);
+
 // ממשק ניהול סטטי
 app.use('/panel', express.static('admin'));
+
+// פורטל לקוחות
+app.use('/my', express.static('customer'));
 
 const PORT = process.env.PORT || 3000;
 

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>מקושרים — הזמנת הטבות</title>
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --bg: #0f1419; --surface: #1a1f2e; --surface-2: #232838; --border: #2d3444;
+      --text: #e8eaed; --text-dim: #9aa0a9; --accent: #4f8cff; --accent-dim: #2d4a7c;
+      --green: #34c77b; --red: #ef5350; --amber: #f5a623; --radius: 12px;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { direction: rtl; text-align: right; font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    .container { max-width: 520px; margin: 0 auto; padding: 24px 16px; }
+    .header { text-align: center; padding: 32px 0 24px; }
+    .header h1 { font-size: 28px; font-weight: 700; color: var(--accent); }
+    .header p { color: var(--text-dim); margin-top: 6px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+    .card h2 { font-size: 18px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+    .card h2 svg { width: 20px; height: 20px; color: var(--accent); }
+    .field { margin-bottom: 14px; }
+    .field label { display: block; margin-bottom: 6px; color: var(--text-dim); font-size: 13px; }
+    input, select, textarea { background: var(--surface-2); border: 1px solid var(--border); color: var(--text); padding: 12px 14px; border-radius: 8px; font-family: inherit; font-size: 15px; width: 100%; transition: border .15s; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+    .btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 13px 20px; border-radius: 8px; border: none; cursor: pointer; font-family: inherit; font-size: 15px; font-weight: 600; transition: all .15s; width: 100%; }
+    .btn svg { width: 18px; height: 18px; }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover { background: #3d7aef; }
+    .btn-primary:disabled { background: var(--surface-2); color: var(--text-dim); cursor: not-allowed; }
+    .btn-ghost { background: var(--surface-2); color: var(--text); }
+    .btn-danger { background: rgba(239,83,80,.15); color: var(--red); }
+    .error { background: rgba(239,83,80,.1); border: 1px solid rgba(239,83,80,.3); border-radius: 8px; padding: 12px 14px; color: var(--red); font-size: 14px; margin-bottom: 14px; }
+    .success { background: rgba(52,199,123,.1); border: 1px solid rgba(52,199,123,.3); border-radius: 8px; padding: 12px 14px; color: var(--green); font-size: 14px; margin-bottom: 14px; }
+    .badge { padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+    .badge-green { background: rgba(52,199,123,.15); color: var(--green); }
+    .badge-amber { background: rgba(245,166,35,.15); color: var(--amber); }
+    .benefit-item { background: var(--surface-2); border-radius: 10px; padding: 16px; margin-bottom: 10px; cursor: pointer; border: 2px solid transparent; transition: all .15s; }
+    .benefit-item:hover { border-color: var(--accent-dim); }
+    .benefit-item.selected { border-color: var(--accent); }
+    .benefit-item.ordered { border-color: var(--green); opacity: .7; cursor: default; }
+    .benefit-name { font-weight: 600; font-size: 16px; margin-bottom: 4px; }
+    .benefit-meta { color: var(--text-dim); font-size: 13px; display: flex; gap: 12px; flex-wrap: wrap; }
+    .coupon-code { background: var(--surface-2); border-radius: 8px; padding: 12px 16px; font-size: 20px; font-weight: 700; text-align: center; letter-spacing: 2px; color: var(--amber); margin: 8px 0; border: 1px dashed var(--amber); }
+    .section-h { font-size: 15px; font-weight: 700; margin: 16px 0 10px; color: var(--text-dim); }
+    .hidden { display: none; }
+    .spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,.3); border-top-color: white; border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .qty-row { display: flex; align-items: center; gap: 10px; }
+    .qty-row input { width: 80px; text-align: center; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>מקושרים</h1>
+      <p>הזמנת הטבות</p>
+    </div>
+
+    <!-- שלב 1: כניסה -->
+    <div id="pageLogin" class="card">
+      <h2><i data-lucide="phone"></i> כניסה</h2>
+      <div class="field">
+        <label>מספר טלפון</label>
+        <input id="phoneInput" type="tel" placeholder="050-0000000" inputmode="numeric">
+      </div>
+      <div id="loginError"></div>
+      <button class="btn btn-primary" onclick="doLogin()" id="loginBtn">
+        <i data-lucide="log-in"></i> כניסה
+      </button>
+    </div>
+
+    <!-- שלב 2: הזמנה -->
+    <div id="pageOrder" class="hidden">
+      <div class="card">
+        <h2><i data-lucide="user"></i> <span id="welcomeName"></span></h2>
+        <div id="myOrders"></div>
+      </div>
+      <div class="card" id="orderCard">
+        <h2><i data-lucide="gift"></i> הטבות זמינות</h2>
+        <div id="benefitsList"></div>
+
+        <!-- פרטי הזמנה (מוצג אחרי בחירת הטבה) -->
+        <div id="orderDetails" class="hidden">
+          <hr class="divider">
+          <div class="field">
+            <label>מספרי תעודת זהות של הילדים</label>
+            <textarea id="idNumbers" rows="3" placeholder="הכנס מספרי ת.ז. של הילדים המוזמנים..."></textarea>
+          </div>
+          <div class="field">
+            <label>כמות (<span id="maxQty"></span> לכל היותר)</label>
+            <div class="qty-row">
+              <button class="btn btn-ghost" style="width:44px;padding:8px" onclick="changeQty(-1)">−</button>
+              <input id="qtyInput" type="number" value="1" min="1" max="1">
+              <button class="btn btn-ghost" style="width:44px;padding:8px" onclick="changeQty(1)">+</button>
+            </div>
+          </div>
+          <div id="orderError"></div>
+          <button class="btn btn-primary" onclick="doOrder()" id="orderBtn">
+            <i data-lucide="check"></i> אישור הזמנה
+          </button>
+        </div>
+      </div>
+
+      <!-- אישור הזמנה -->
+      <div id="pageSuccess" class="hidden">
+        <div class="card">
+          <div style="text-align:center;padding:20px 0">
+            <i data-lucide="check-circle" style="width:48px;height:48px;color:var(--green)"></i>
+            <h2 style="justify-content:center;margin-top:12px">ההזמנה אושרה</h2>
+            <div id="successDetails" style="margin-top:12px;color:var(--text-dim)"></div>
+          </div>
+          <div id="couponCodes"></div>
+          <button class="btn btn-ghost" style="margin-top:16px" onclick="showMyOrders()">
+            <i data-lucide="list"></i> הזמנות שלי
+          </button>
+        </div>
+      </div>
+
+      <button class="btn btn-ghost" style="margin-top:8px" onclick="logout()">
+        <i data-lucide="log-out"></i> התנתקות
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const API = '/api';
+    let currentPhone = null;
+    let currentUser = null;
+    let selectedBenefit = null;
+    let allBenefits = [];
+
+    function icon(name, size=16) { return `<i data-lucide="${name}" style="width:${size}px;height:${size}px"></i>`; }
+    function refresh() { lucide.createIcons(); }
+    function fmtDate(s) { if (!s) return ''; return new Date(s).toLocaleDateString('he-IL'); }
+
+    async function api(path, opts = {}) {
+      const res = await fetch(API + path, { ...opts, headers: { 'Content-Type': 'application/json', ...(opts.headers||{}) } });
+      const data = await res.json();
+      if (!res.ok) throw data;
+      return data;
+    }
+
+    // ── כניסה ──
+    document.getElementById('phoneInput').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+    async function doLogin() {
+      const phone = document.getElementById('phoneInput').value.trim().replace(/[-\s]/g,'');
+      if (!phone) return;
+      const btn = document.getElementById('loginBtn');
+      btn.innerHTML = '<div class="spinner"></div>';
+      btn.disabled = true;
+      document.getElementById('loginError').innerHTML = '';
+      try {
+        const user = await api('/login', { method:'POST', body: JSON.stringify({ phone }) });
+        currentPhone = phone;
+        currentUser = user;
+        document.getElementById('pageLogin').classList.add('hidden');
+        document.getElementById('pageOrder').classList.remove('hidden');
+        document.getElementById('welcomeName').textContent = user.name || phone;
+        await loadPage();
+      } catch(e) {
+        document.getElementById('loginError').innerHTML = `<div class="error">המספר אינו ברשימת הלקוחות המורשים</div>`;
+        btn.innerHTML = `${icon('log-in')} כניסה`;
+        btn.disabled = false;
+      }
+      refresh();
+    }
+
+    async function loadPage() {
+      const [benefits, myData] = await Promise.all([
+        api('/benefits'),
+        api(`/my/${currentPhone}`)
+      ]);
+      allBenefits = benefits;
+      renderMyOrders(myData);
+      renderBenefits(benefits, myData);
+      refresh();
+    }
+
+    // ── ההזמנות שלי ──
+    function renderMyOrders(myData) {
+      const el = document.getElementById('myOrders');
+      if (!myData.selections.length && !myData.coupons.length) {
+        el.innerHTML = '<p style="color:var(--text-dim);font-size:14px">עדיין לא הזמנת הטבות</p>';
+        return;
+      }
+      let html = '';
+      if (myData.selections.length) {
+        html += `<div class="section-h">ההזמנות שלי</div>`;
+        myData.selections.forEach(s => {
+          html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+            <div>
+              <div style="font-weight:600">${s.name}</div>
+              <div style="color:var(--text-dim);font-size:13px">${fmtDate(s.created_at)}</div>
+            </div>
+            <span class="badge badge-green">${s.type==='coupon'?'קופון':'נרשם'}</span>
+          </div>`;
+        });
+      }
+      if (myData.coupons.length) {
+        html += `<div class="section-h">הקופונים שלי</div>`;
+        myData.coupons.forEach(c => {
+          html += `<div style="margin-bottom:8px">
+            <div style="color:var(--text-dim);font-size:13px">${c.benefit_name}</div>
+            <div class="coupon-code">${c.code}</div>
+          </div>`;
+        });
+      }
+      el.innerHTML = html;
+    }
+
+    // ── רשימת הטבות ──
+    function renderBenefits(benefits, myData) {
+      const orderedIds = new Set(myData.selections.map(s => s.benefit_id));
+      const el = document.getElementById('benefitsList');
+      if (!benefits.length) { el.innerHTML = '<p style="color:var(--text-dim)">אין הטבות זמינות כרגע</p>'; return; }
+      el.innerHTML = benefits.map((b, i) => {
+        const isOrdered = orderedIds.has(b.benefit_id || b.id);
+        return `<div class="benefit-item ${isOrdered?'ordered':''}" onclick="${isOrdered?'':'selectBenefit('+b.id+')'}">
+          <div class="benefit-name">${b.name}</div>
+          <div class="benefit-meta">
+            <span>${b.type==='coupon'?'קופון':'הרשמה'}</span>
+            <span>עד ${b.per_family} יחידות</span>
+            ${b.total_stock>0?`<span>נשארו: ${b.total_stock}</span>`:''}
+            ${isOrdered?'<span class="badge badge-green">הוזמן</span>':''}
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    // ── בחירת הטבה ──
+    function selectBenefit(id) {
+      selectedBenefit = allBenefits.find(b => b.id === id);
+      if (!selectedBenefit) return;
+
+      // סמן הנבחרת
+      document.querySelectorAll('.benefit-item').forEach(el => el.classList.remove('selected'));
+      event.currentTarget.classList.add('selected');
+
+      // הצג פרטי הזמנה
+      document.getElementById('orderDetails').classList.remove('hidden');
+      document.getElementById('pageSuccess').classList.add('hidden');
+      document.getElementById('maxQty').textContent = selectedBenefit.per_family;
+      document.getElementById('qtyInput').max = selectedBenefit.per_family;
+      document.getElementById('qtyInput').value = 1;
+      document.getElementById('orderError').innerHTML = '';
+
+      // אם קופון — הצג אזהרה
+      if (selectedBenefit.type === 'coupon') {
+        document.getElementById('orderError').innerHTML = `<div class="error" style="background:rgba(245,166,35,.1);border-color:rgba(245,166,35,.3);color:var(--amber)">
+          ${icon('alert-triangle')} שים לב: הטבה זו מסוג קופון — יש לשמור את הקוד שתקבל
+        </div>`;
+      }
+      refresh();
+    }
+
+    function changeQty(delta) {
+      const input = document.getElementById('qtyInput');
+      const max = selectedBenefit ? selectedBenefit.per_family : 1;
+      const val = Math.min(max, Math.max(1, (parseInt(input.value)||1) + delta));
+      input.value = val;
+    }
+
+    // ── הזמנה ──
+    async function doOrder() {
+      if (!selectedBenefit) return;
+      const idNumbers = document.getElementById('idNumbers').value.trim();
+      const qty = parseInt(document.getElementById('qtyInput').value) || 1;
+
+      if (!idNumbers) {
+        document.getElementById('orderError').innerHTML = `<div class="error">יש להכניס מספרי תעודת זהות</div>`;
+        return;
+      }
+
+      const btn = document.getElementById('orderBtn');
+      btn.innerHTML = '<div class="spinner"></div>';
+      btn.disabled = true;
+      document.getElementById('orderError').innerHTML = '';
+
+      try {
+        const result = await api('/order', {
+          method: 'POST',
+          body: JSON.stringify({ phone: currentPhone, benefit_id: selectedBenefit.id, qty, id_numbers: idNumbers })
+        });
+
+        // הצג אישור
+        document.getElementById('orderDetails').classList.add('hidden');
+        document.getElementById('pageSuccess').classList.remove('hidden');
+        document.getElementById('successDetails').textContent = `${selectedBenefit.name} — ${qty} יחידות`;
+
+        if (result.type === 'coupon' && result.codes) {
+          document.getElementById('couponCodes').innerHTML = `
+            <div class="section-h">הקופונים שלך</div>
+            ${result.codes.map(c => `<div class="coupon-code">${c}</div>`).join('')}
+            <p style="color:var(--amber);font-size:13px;margin-top:8px">שמור את הקוד — הוא לא יוצג שוב</p>
+          `;
+        }
+        refresh();
+        await loadPage();
+      } catch(e) {
+        const msgs = {
+          already_ordered: `כבר הזמנת את ההטבה "${e.benefit_name}"`,
+          has_other: `כבר הזמנת הטבה אחרת (${e.benefit_name}). ניתן לבחור הטבה אחת בלבד.`,
+          out_of_stock: 'המלאי אזל',
+          invalid_qty: `כמות לא חוקית (מקסימום ${e.max})`,
+          not_authorized: 'לא מורשה',
+        };
+        document.getElementById('orderError').innerHTML = `<div class="error">${msgs[e.error] || 'אירעה שגיאה, נסה שוב'}</div>`;
+        btn.innerHTML = `${icon('check')} אישור הזמנה`;
+        btn.disabled = false;
+        refresh();
+      }
+    }
+
+    async function showMyOrders() {
+      document.getElementById('pageSuccess').classList.add('hidden');
+      await loadPage();
+    }
+
+    function logout() {
+      currentPhone = null; currentUser = null; selectedBenefit = null;
+      document.getElementById('pageLogin').classList.remove('hidden');
+      document.getElementById('pageOrder').classList.add('hidden');
+      document.getElementById('phoneInput').value = '';
+      document.getElementById('loginBtn').innerHTML = `${icon('log-in')} כניסה`;
+      document.getElementById('loginBtn').disabled = false;
+      refresh();
+    }
+
+    refresh();
+  </script>
+</body>
+</html>
