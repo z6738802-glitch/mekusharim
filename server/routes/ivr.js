@@ -11,27 +11,28 @@ const REC = {
   notAuthorized:  `${DIR}/000`, // מספרך אינו מורשה
   choosePrefix:   `${DIR}/001`, // "לבחירת"
   pressPrefix:    `${DIR}/002`, // "הקישו"
-  alreadyChose:   `${DIR}/003`, // כבר בחרת הטבה אחרת
-  alreadyThisOne: `${DIR}/004`, // כבר בחרת הטבה זו
-  changeMenu:     `${DIR}/005`, // לשינוי הקש 1, לביטול הקש 2
-  couponMenu:     `${DIR}/006`, // לשמיעת קופון 1, למחיקה 2, לחזרה 3
-  registered:     `${DIR}/007`, // בחירתך נרשמה תודה
-  cancelled:      `${DIR}/008`, // בחירתך בוטלה
-  outOfStock:     `${DIR}/009`, // המלאי אזל
-  saveCouponNote: `${DIR}/010`, // שים לב שמור את מספר הקופון
-  yourCouponIs:   `${DIR}/011`, // הקופון שלך הוא
+  alreadyChose:   `${DIR}/003`, // "כבר בחרת את ההטבה" (+ שם הטבה דינמי)
+  alreadyThisOne: `${DIR}/004`, // "כבר בחרת הטבה זו" (לקופון)
+  changeMenu:     `${DIR}/005`, // "לשינוי הקש 1, לביטול הקש 2"
+  couponMenu:     `${DIR}/006`, // "לשמיעת קופון 1, למחיקה 2, לחזרה 3"
+  registered:     `${DIR}/007`, // "בחירתך נרשמה תודה"
+  cancelled:      `${DIR}/008`, // "בחירתך בוטלה"
+  outOfStock:     `${DIR}/009`, // "המלאי אזל"
+  saveCouponNote: `${DIR}/010`, // "שים לב שמור את מספר הקופון"
+  yourCouponIs:   `${DIR}/011`, // "הקופון שלך הוא"
   howMany:        `${DIR}/012`, // "הקישו את הכמות הרצויה, ניתן להזמין עד"
   units:          `${DIR}/013`, // "יחידות"
   overQuota:      `${DIR}/014`, // "עברת את מכסת המשפחה"
   noStock:        `${DIR}/015`, // "אין מספיק מלאי"
   approved:       `${DIR}/016`, // "אושרו"
   unitsThanks:    `${DIR}/017`, // "יחידות, תודה"
-  recordID:       `${DIR}/018`, // "אנא הקלט את מספרי תעודת הזהות של הילדים"
+  recordID:       `${DIR}/018`, // "אנא הקלט את תעודות הזהות"
+  couponWarning:  `${DIR}/019`, // "שים לב הטבה זו מסוג קופון, יש לשמור את הקוד"
+  replayMenu:     `${DIR}/020`, // "לשמיעה חוזרת הקש 1, לסיום הקש 2"
+  deleteMenu:     `${DIR}/021`, // "למחיקה הקש 1, לביטול הקש 2"
 };
 
-// תיקיית הקלטות ת"ז בימות
-const REC_DIR = process.env.YEMOT_MAIN_DIR ? `${DIR}/recordings` : '/mekusharim/recordings';
-
+const REC_DIR = `${DIR}/recordings`;
 const benefitRec = (b) => b.recording || `${DIR}/Benefits/${b.id}`;
 
 router.all('/ivr', async (req, res) => {
@@ -46,7 +47,7 @@ router.all('/ivr', async (req, res) => {
 
     const benefits = await B.getActiveBenefits();
 
-    // שלב 1: בחירת הטבה לפי מיקום בתפריט
+    // שלב 1: בחירת הטבה
     if (p.choice === undefined) {
       return send(res, buildMenu(benefits));
     }
@@ -57,33 +58,57 @@ router.all('/ivr', async (req, res) => {
       return send(res, buildMenu(benefits));
     }
 
-    // שלב 2: כבר בחר בעבר?
+    // שלב 2: כבר בחר את אותה הטבה?
     const already = await B.familyCount(chosen.id, phone);
     if (already > 0) {
       return handleExisting(res, chosen, phone, p);
     }
 
-    // שלב 3: בדיקת צבירה
-    const check = await B.canTake(chosen, phone);
-    if (!check.ok && check.reason === 'has_other_benefit') {
-      return send(res, respond(play(file(REC.alreadyChose)), hangup()));
+    // שלב 3: כבר בחר הטבה אחרת (שאינה ניתנת לצבירה)?
+    if (!chosen.stackable) {
+      const existing = await B.customerSelections(phone);
+      const otherActive = existing.filter(s => s.benefit_id !== chosen.id && !s.stackable);
+      if (otherActive.length > 0) {
+        const other = otherActive[0];
+        // שמע: "כבר בחרת את ההטבה" + שם ההטבה האחרת + "לשינוי 1, לביטול 2"
+        if (p.switchAction === undefined) {
+          return send(res, read({
+            message: [
+              file(REC.alreadyChose),
+              file(benefitRec(other)),
+              file(REC.changeMenu),
+            ],
+            varName: 'switchAction',
+          }));
+        }
+        if (p.switchAction === '1') {
+          // מוחק את הישן וממשיך לבחירה החדשה
+          await B.removeAllSelections(other.benefit_id, phone);
+          await C.releaseCoupons(other.benefit_id, phone);
+        } else {
+          // ביטול — חוזר לתפריט
+          return send(res, buildMenu(benefits));
+        }
+      }
     }
 
-    // שלב 4: בחירת כמות
+    // שלב 4: אזהרת קופון (לפני כמות)
+    if (chosen.type === 'coupon' && p.couponWarned === undefined) {
+      return send(res, read({
+        message: [file(REC.couponWarning)],
+        varName: 'couponWarned',
+      }));
+    }
+
+    // שלב 5: בחירת כמות
     if (p.qty === undefined) {
       return send(res, read({
-        message: [
-          file(REC.howMany),
-          number(chosen.per_family),
-          file(REC.units),
-        ],
+        message: [file(REC.howMany), number(chosen.per_family), file(REC.units)],
         varName: 'qty',
       }));
     }
 
     const qty = parseInt(p.qty, 10);
-
-    // שלב 5: בדיקת כמות מול מגבלת משפחה
     if (isNaN(qty) || qty < 1 || qty > chosen.per_family) {
       return send(res, respond(play(file(REC.overQuota)), hangup()));
     }
@@ -106,10 +131,10 @@ router.all('/ivr', async (req, res) => {
       }));
     }
 
-    // שלב 8: ביצוע עם שמירת נתיב ההקלטה
+    // שלב 8: ביצוע
     const recordingPath = p.recPath || null;
     if (chosen.type === 'coupon') {
-      return assignCoupons(res, chosen, phone, qty, recordingPath);
+      return assignCoupons(res, chosen, phone, qty, recordingPath, p);
     } else {
       for (let i = 0; i < qty; i++) {
         await B.addSelection(chosen.id, phone, recordingPath);
@@ -138,9 +163,10 @@ function buildMenu(benefits) {
   return read({ message: items, varName: 'choice' });
 }
 
-// כבר בחר — טיפול
+// כבר בחר את אותה הטבה
 async function handleExisting(res, benefit, phone, p) {
   if (benefit.type === 'coupon') {
+    // קופון: שמע 004 + תפריט קופון (1=שמע, 2=מחק, 3=חזרה)
     if (p.couponAction === undefined) {
       return send(res, read({
         message: [file(REC.alreadyThisOne), file(REC.couponMenu)],
@@ -148,61 +174,89 @@ async function handleExisting(res, benefit, phone, p) {
       }));
     }
     if (p.couponAction === '1') {
-      // שמיעת קופונים
+      // שמיעת קופונים + תפריט חזרה
       const codes = await C.getCustomerCoupons(benefit.id, phone);
-      const items = [];
-      for (const code of codes) {
-        items.push(file(REC.yourCouponIs));
-        items.push(digits(code));
+      if (p.replayAction === undefined) {
+        const items = [file(REC.saveCouponNote)];
+        for (const code of codes) {
+          items.push(file(REC.yourCouponIs));
+          items.push(digits(code));
+        }
+        items.push(file(REC.replayMenu));
+        return send(res, read({ message: items, varName: 'replayAction' }));
       }
-      return send(res, respond(play(...items), hangup()));
+      if (p.replayAction === '1') {
+        // שמיעה חוזרת — מאפס replayAction
+        const items = [file(REC.saveCouponNote)];
+        for (const code of codes) {
+          items.push(file(REC.yourCouponIs));
+          items.push(digits(code));
+        }
+        items.push(file(REC.replayMenu));
+        return send(res, read({ message: items, varName: 'replayAction' }));
+      }
+      // 2 = סיום
+      return send(res, hangup());
     }
     if (p.couponAction === '2') {
-      // מחיקה — מאפס ובוחר מחדש
+      // מחיקה
       await C.releaseCoupons(benefit.id, phone);
       await B.removeAllSelections(benefit.id, phone);
       return send(res, respond(play(file(REC.cancelled)), hangup()));
     }
-    // 3 = חזרה
+    // 3 = חזרה לתפריט
     return send(res, buildMenu(await B.getActiveBenefits()));
   }
 
-  // הרשמה רגילה: 1=שנה(מאפס), 2=חזרה
-  if (p.changeAction === undefined) {
+  // הרשמה: שמע 003 + שם הטבה + תפריט מחיקה (021)
+  if (p.deleteAction === undefined) {
     return send(res, read({
-      message: [file(REC.alreadyChose), file(REC.changeMenu)],
-      varName: 'changeAction',
+      message: [file(REC.alreadyChose), file(benefitRec(benefit)), file(REC.deleteMenu)],
+      varName: 'deleteAction',
     }));
   }
-  if (p.changeAction === '1') {
-    // מאפס ובוחר מחדש
+  if (p.deleteAction === '1') {
     await B.removeAllSelections(benefit.id, phone);
     return send(res, respond(play(file(REC.cancelled)), hangup()));
   }
+  // 2 = חזרה
   return send(res, buildMenu(await B.getActiveBenefits()));
 }
 
-// הקצאת קופונים בכמות
-async function assignCoupons(res, benefit, phone, qty, recordingPath = null) {
+// הקצאת קופונים + השמעה חוזרת
+async function assignCoupons(res, benefit, phone, qty, recordingPath, p) {
   const codes = [];
   for (let i = 0; i < qty; i++) {
     await B.addSelection(benefit.id, phone, recordingPath);
     const code = await C.assignCoupon(benefit.id, phone);
     if (code === null) {
-      // אזל המלאי באמצע — מבטל הכל
       await C.releaseCoupons(benefit.id, phone);
       await B.removeAllSelections(benefit.id, phone);
       return send(res, respond(play(file(REC.outOfStock)), hangup()));
     }
     codes.push(code);
   }
-  // משמיע: "שמור את מספר הקופון" + כל הקודים
-  const items = [file(REC.saveCouponNote)];
-  for (const code of codes) {
-    items.push(file(REC.yourCouponIs));
-    items.push(digits(code));
+
+  // השמעת הקודים + תפריט חזרה
+  if (p.replayAction === undefined) {
+    const items = [file(REC.saveCouponNote)];
+    for (const code of codes) {
+      items.push(file(REC.yourCouponIs));
+      items.push(digits(code));
+    }
+    items.push(file(REC.replayMenu));
+    return send(res, read({ message: items, varName: 'replayAction' }));
   }
-  return send(res, respond(play(...items), hangup()));
+  if (p.replayAction === '1') {
+    const items = [file(REC.saveCouponNote)];
+    for (const code of codes) {
+      items.push(file(REC.yourCouponIs));
+      items.push(digits(code));
+    }
+    items.push(file(REC.replayMenu));
+    return send(res, read({ message: items, varName: 'replayAction' }));
+  }
+  return send(res, hangup());
 }
 
 function send(res, body) {
