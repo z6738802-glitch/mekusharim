@@ -29,6 +29,7 @@ const REC = {
   recordID:       `${DIR}/018`, // "אנא הקלט את תעודות הזהות"
   couponWarning:  `${DIR}/019`, // "שים לב הטבה זו מסוג קופון, יש לשמור את הקוד"
   welcomeMsg:     `${DIR}/022`, // הסבר לפני תפריט ההטבות
+  couponUsage:    `${DIR}/023`, // איפה אפשר להשתמש בקופון
   deleteMenu:     `${DIR}/021`, // "למחיקה הקש 1, לביטול הקש 2"
 };
 
@@ -193,6 +194,7 @@ async function handleExisting(res, benefit, phone, p) {
           items.push(file(REC.yourCouponIs));
           items.push(digits(code));
         }
+        items.push(file(REC.couponUsage));
         items.push(file(REC.replayMenu));
         return send(res, read({ message: items, varName: 'replayAction' }));
       }
@@ -203,6 +205,7 @@ async function handleExisting(res, benefit, phone, p) {
           items.push(file(REC.yourCouponIs));
           items.push(digits(code));
         }
+        items.push(file(REC.couponUsage));
         items.push(file(REC.replayMenu));
         return send(res, read({ message: items, varName: 'replayAction' }));
       }
@@ -256,7 +259,8 @@ async function assignCoupons(res, benefit, phone, qty, recordingPath, p) {
       items.push(file(REC.yourCouponIs));
       items.push(digits(code));
     }
-    items.push(file(REC.replayMenu));
+    items.push(file(REC.couponUsage));
+        items.push(file(REC.replayMenu));
     return send(res, read({ message: items, varName: 'replayAction' }));
   }
   if (p.replayAction === '1') {
@@ -265,7 +269,8 @@ async function assignCoupons(res, benefit, phone, qty, recordingPath, p) {
       items.push(file(REC.yourCouponIs));
       items.push(digits(code));
     }
-    items.push(file(REC.replayMenu));
+    items.push(file(REC.couponUsage));
+        items.push(file(REC.replayMenu));
     return send(res, read({ message: items, varName: 'replayAction' }));
   }
   return send(res, hangup());
