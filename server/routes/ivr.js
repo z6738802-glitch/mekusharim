@@ -176,6 +176,7 @@ async function handleExisting(res, benefit, phone, p) {
           file(REC.couponMenu),
         ],
         varName: 'couponAction',
+        confirm: true,
       }));
     }
     if (p.couponAction === '1') {
@@ -218,6 +219,7 @@ async function handleExisting(res, benefit, phone, p) {
     return send(res, read({
       message: [file(REC.alreadyChose), file(benefitRec(benefit)), file(REC.deleteMenu)],
       varName: 'deleteAction',
+      confirm: true,
     }));
   }
   if (p.deleteAction === '1') {
