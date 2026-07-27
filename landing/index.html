@@ -12,7 +12,7 @@
       --gold: #D4A017;
       --gold-light: #F0C040;
       --cream: #FDF6E3;
-      --dark: #1A0A0F;
+      --dark: #120608;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html { scroll-behavior: smooth; }
@@ -23,245 +23,269 @@
       overflow-x: hidden;
     }
 
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; right: 0; left: 0; z-index: 100;
+      padding: 16px 32px;
+      display: flex; align-items: center; justify-content: space-between;
+      background: linear-gradient(to bottom, rgba(18,6,8,0.95), transparent);
+    }
+    .nav-logo { height: 52px; }
+    .nav-cta {
+      padding: 10px 28px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-light));
+      color: var(--burgundy-dark); font-weight: 900; font-size: 15px;
+      border-radius: 50px; text-decoration: none;
+      font-family: 'Heebo', sans-serif;
+      transition: transform .2s;
+    }
+    .nav-cta:hover { transform: translateY(-2px); }
+
     /* ── HERO ── */
     .hero {
       min-height: 100vh;
-      background: radial-gradient(ellipse at center top, var(--burgundy) 0%, var(--dark) 70%);
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      text-align: center; padding: 40px 20px 80px;
+      background: radial-gradient(ellipse at 60% 40%, rgba(107,26,42,0.8) 0%, var(--dark) 65%);
+      display: flex; align-items: center;
+      padding: 100px 6vw 60px;
       position: relative; overflow: hidden;
+      gap: 40px;
     }
-    .hero::before {
-      content: ''; position: absolute; inset: 0;
-      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23D4A017' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    .hero::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23D4A017' fill-opacity='0.03'%3E%3Cpath d='M0 0h40v40H0zm40 40h40v40H40z'/%3E%3C/g%3E%3C/svg%3E");
+      pointer-events: none;
     }
-    .hero-inner {
-      display: flex; align-items: center; justify-content: center;
-      gap: 48px; flex-wrap: wrap; position: relative; z-index: 1;
-      max-width: 1100px;
-    }
-    .hero-mascot {
-      width: clamp(240px, 35vw, 420px);
-      filter: drop-shadow(0 20px 40px rgba(0,0,0,0.5));
-      animation: floatIn 1s ease forwards;
-      opacity: 0; transform: translateX(40px);
-    }
-    @keyframes floatIn {
-      to { opacity: 1; transform: translateX(0); }
-    }
-    .hero-text { text-align: right; }
+    .hero-text { flex: 1; position: relative; z-index: 1; }
     .hero-badge {
-      display: inline-block; padding: 6px 18px;
-      background: rgba(212,160,23,0.15); border: 1px solid rgba(212,160,23,0.4);
-      border-radius: 20px; font-size: 13px; color: var(--gold);
-      margin-bottom: 16px; letter-spacing: 1px;
+      display: inline-block; padding: 6px 20px;
+      border: 1px solid rgba(212,160,23,0.5);
+      border-radius: 30px; font-size: 13px;
+      color: var(--gold); margin-bottom: 20px; letter-spacing: 1px;
     }
     .hero-title {
-      font-size: clamp(2.4rem, 6vw, 4.5rem); font-weight: 900;
-      line-height: 1.1;
-      text-shadow: 0 2px 20px rgba(0,0,0,0.5);
+      font-size: clamp(2.8rem, 6vw, 5.5rem);
+      font-weight: 900; line-height: 1.05;
+      text-shadow: 0 4px 24px rgba(0,0,0,0.6);
     }
-    .hero-title span { color: var(--gold); }
-    .hero-sub {
-      font-size: clamp(1rem, 2.5vw, 1.2rem); font-weight: 300;
-      color: rgba(253,246,227,0.7); margin-top: 12px;
+    .hero-title em { color: var(--gold); font-style: normal; }
+    .hero-desc {
+      margin-top: 16px; font-size: 1.15rem;
+      color: rgba(253,246,227,0.65); font-weight: 300;
+      max-width: 440px;
     }
-    .hero-cta {
-      margin-top: 32px; display: inline-block; padding: 18px 48px;
+    .hero-btn {
+      margin-top: 36px; display: inline-block;
+      padding: 18px 52px;
       background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
-      color: var(--burgundy-dark); font-weight: 900; font-size: 1.15rem;
+      color: var(--burgundy-dark); font-weight: 900; font-size: 1.1rem;
       border-radius: 50px; text-decoration: none;
-      box-shadow: 0 8px 32px rgba(212,160,23,0.4);
+      box-shadow: 0 8px 32px rgba(212,160,23,0.35);
       transition: transform .2s, box-shadow .2s;
       font-family: 'Heebo', sans-serif;
     }
-    .hero-cta:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(212,160,23,0.6); }
-    .scroll-hint {
-      position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%);
-      color: rgba(253,246,227,0.3); font-size: 13px; z-index: 1;
-      animation: bounce 2s infinite;
+    .hero-btn:hover { transform: translateY(-3px); box-shadow: 0 14px 40px rgba(212,160,23,0.5); }
+    .hero-mascot {
+      flex: 0 0 auto; width: clamp(280px, 38vw, 500px);
+      position: relative; z-index: 1;
+      filter: drop-shadow(0 24px 48px rgba(0,0,0,0.5));
+      animation: mascotIn 1s ease forwards;
+      opacity: 0; transform: translateY(20px);
     }
-    @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(8px)} }
+    @keyframes mascotIn { to { opacity: 1; transform: translateY(0); } }
 
-    /* ── SECTION ── */
-    .section-title {
-      text-align: center; padding: 64px 20px 40px;
-      font-size: clamp(1.8rem, 5vw, 3rem); font-weight: 900;
+    /* ── BENEFITS ── */
+    .benefits-title {
+      text-align: center; padding: 80px 20px 16px;
+      font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 900;
     }
-    .section-title span { color: var(--gold); }
+    .benefits-title em { color: var(--gold); font-style: normal; }
+    .benefits-sub {
+      text-align: center; color: rgba(253,246,227,0.5);
+      font-size: 1rem; margin-bottom: 60px;
+    }
 
-    /* ── CARDS ── */
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 32px; padding: 0 32px 80px; max-width: 1200px; margin: 0 auto;
+    /* אטרקציה — פריסה אלכסונית */
+    .attraction {
+      display: flex; align-items: center;
+      min-height: 55vh;
+      position: relative; overflow: hidden;
+      opacity: 0; transform: translateY(50px);
+      transition: opacity .7s ease, transform .7s ease;
     }
-    .card {
-      background: linear-gradient(145deg, rgba(107,26,42,0.3) 0%, rgba(26,10,15,0.8) 100%);
-      border: 1px solid rgba(212,160,23,0.2);
-      border-radius: 24px; overflow: visible;
-      position: relative; padding-bottom: 28px;
-      transition: transform .3s, box-shadow .3s;
-      opacity: 0; transform: translateY(40px);
+    .attraction.visible { opacity: 1; transform: translateY(0); }
+
+    .attraction-img {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      filter: brightness(0.45);
     }
-    .card.visible {
-      animation: slideUp .6s ease forwards;
+
+    /* overlay gradient לפי כיוון */
+    .attraction::after {
+      content: ''; position: absolute; inset: 0;
+      pointer-events: none;
     }
-    @keyframes slideUp {
-      to { opacity: 1; transform: translateY(0); }
+    .attraction.right::after {
+      background: linear-gradient(to right, rgba(18,6,8,0.0) 30%, rgba(18,6,8,0.95) 80%);
     }
-    .card:hover { transform: translateY(-6px); box-shadow: 0 20px 60px rgba(212,160,23,0.15); }
-    .card-img-wrap {
-      position: relative; height: 240px; overflow: hidden;
-      border-radius: 24px 24px 0 0;
+    .attraction.left::after {
+      background: linear-gradient(to left, rgba(18,6,8,0.0) 30%, rgba(18,6,8,0.95) 80%);
     }
-    .card-img-wrap img.bg {
-      width: 100%; height: 100%; object-fit: cover;
+
+    .attraction-content {
+      position: relative; z-index: 2;
+      padding: 60px 6vw;
+      max-width: 480px;
+    }
+    .attraction.right .attraction-content { margin-right: auto; margin-left: 0; text-align: right; }
+    .attraction.left  .attraction-content { margin-left: auto;  margin-right: 0; text-align: right; }
+
+    /* mascot על התמונה */
+    .attraction-mascot {
+      position: absolute; z-index: 3;
+      width: clamp(160px, 22vw, 280px);
+      filter: drop-shadow(0 16px 32px rgba(0,0,0,0.5));
       transition: transform .4s;
+      bottom: -20px;
     }
-    .card:hover .card-img-wrap img.bg { transform: scale(1.05); }
-    .card-img-wrap img.mascot {
-      position: absolute; bottom: -30px;
-      width: 130px; height: auto;
-      filter: drop-shadow(0 8px 16px rgba(0,0,0,0.4));
-      transition: transform .3s;
-      z-index: 2;
-    }
-    .card:hover .card-img-wrap img.mascot { transform: translateY(-8px) rotate(-3deg); }
-    /* מיקום המסקוט — חלופה לכל כרטיס */
-    .card:nth-child(odd) .mascot { right: -20px; }
-    .card:nth-child(even) .mascot { left: -20px; transform: scaleX(-1); }
-    .card:nth-child(even):hover .mascot { transform: scaleX(-1) translateY(-8px) rotate(-3deg); }
+    .attraction.right .attraction-mascot { left: 5vw; }
+    .attraction.left  .attraction-mascot { right: 5vw; transform: scaleX(-1); }
+    .attraction:hover .attraction-mascot { transform: translateY(-12px); }
+    .attraction.left:hover .attraction-mascot { transform: scaleX(-1) translateY(-12px); }
 
-    .card-body { padding: 44px 24px 0; }
-    .card-tag {
-      display: inline-block; padding: 4px 14px;
-      background: rgba(212,160,23,0.15); border: 1px solid rgba(212,160,23,0.4);
-      border-radius: 20px; font-size: 12px; color: var(--gold); margin-bottom: 10px;
+    .attraction-num {
+      font-size: 5rem; font-weight: 900; line-height: 1;
+      color: rgba(212,160,23,0.15); margin-bottom: -16px;
     }
-    .card-title { font-size: 1.5rem; font-weight: 900; margin-bottom: 8px; }
-    .card-desc { color: rgba(253,246,227,0.65); font-size: 0.95rem; line-height: 1.6; }
-    .card-btn {
-      display: block; margin: 20px 24px 0;
-      padding: 13px 0; text-align: center;
-      background: linear-gradient(135deg, var(--burgundy) 0%, var(--burgundy-dark) 100%);
+    .attraction-tag {
+      display: inline-block; padding: 4px 14px; margin-bottom: 10px;
       border: 1px solid rgba(212,160,23,0.4);
-      color: var(--gold); font-weight: 700; font-size: 1rem;
-      border-radius: 12px; text-decoration: none;
-      transition: all .2s; font-family: 'Heebo', sans-serif;
+      border-radius: 20px; font-size: 12px; color: var(--gold);
     }
-    .card-btn:hover {
+    .attraction-title {
+      font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 900;
+      margin-bottom: 10px; line-height: 1.1;
+    }
+    .attraction-desc {
+      color: rgba(253,246,227,0.65); font-size: 1rem;
+      line-height: 1.65; margin-bottom: 28px;
+    }
+    .attraction-btn {
+      display: inline-block; padding: 14px 40px;
       background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
-      color: var(--burgundy-dark); border-color: transparent;
+      color: var(--burgundy-dark); font-weight: 900; font-size: 1rem;
+      border-radius: 50px; text-decoration: none;
+      box-shadow: 0 6px 24px rgba(212,160,23,0.3);
+      transition: transform .2s, box-shadow .2s;
+      font-family: 'Heebo', sans-serif;
     }
+    .attraction-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(212,160,23,0.5); }
 
     /* ── FOOTER ── */
     footer {
-      text-align: center; padding: 40px 20px;
-      border-top: 1px solid rgba(212,160,23,0.15);
+      text-align: center; padding: 48px 20px;
+      border-top: 1px solid rgba(212,160,23,0.12);
       color: rgba(253,246,227,0.3); font-size: 14px;
     }
-    footer img { width: 60px; opacity: .5; margin-bottom: 12px; display: block; margin-inline: auto; }
+    footer img { height: 60px; opacity: .45; display: block; margin: 0 auto 14px; }
   </style>
 </head>
 <body>
 
+  <!-- NAV -->
+  <nav>
+    <img src="images/logo.png" class="nav-logo" alt="מקושרים">
+    <a href="/my" class="nav-cta">להזמנה</a>
+  </nav>
+
   <!-- HERO -->
   <section class="hero">
-    <div class="hero-inner">
-      <img class="hero-mascot" src="images/hero_mascot.png" alt="מקושרים">
-      <div class="hero-text">
-        <div class="hero-badge">קדשי סטאלין קארלין</div>
-        <h1 class="hero-title">
-          הקיץ הזה —<br><span>מגיע לכם</span>
-        </h1>
-        <p class="hero-sub">הטבות בלעדיות למקושרים</p>
-        <a href="/my" class="hero-cta">להזמנת ההטבה שלי</a>
-      </div>
+    <div class="hero-text">
+      <div class="hero-badge">קדשי סטאלין קארלין</div>
+      <h1 class="hero-title">
+        הקיץ הזה —<br><em>מגיע לכם</em>
+      </h1>
+      <p class="hero-desc">הטבות בלעדיות למקושרים. חוויות שלא תשכחו לעולם.</p>
+      <a href="/my" class="hero-btn">להזמנת ההטבה שלי</a>
     </div>
-    <div class="scroll-hint">גלול למטה לגלות ▼</div>
+    <img src="images/hero_mascot.png" class="hero-mascot" alt="">
   </section>
 
-  <!-- BENEFITS -->
-  <h2 class="section-title">ההטבות <span>שחיכיתם</span> להן</h2>
+  <!-- BENEFITS TITLE -->
+  <div class="benefits-title">ההטבות <em>שחיכיתם</em> להן</div>
+  <div class="benefits-sub">ארבע חוויות. קיץ אחד. בשבילכם.</div>
 
-  <div class="cards">
-    <!-- גאננה -->
-    <div class="card">
-      <div class="card-img-wrap">
-        <img class="bg" src="images/ganana.png" alt="פארק גאננה">
-        <img class="mascot" src="images/mascot_bush.png" alt="">
-      </div>
-      <div class="card-body">
-        <div class="card-tag">פארק הרפתקאות</div>
-        <div class="card-title">פארק גאננה</div>
-        <div class="card-desc">טיפוס, זחילה ואתגר בין העצים — חוויה שהילדים לא ישכחו</div>
-      </div>
-      <a href="/my" class="card-btn">להזמנה</a>
+  <!-- ATTRACTION 1 — גאננה (תוכן מימין) -->
+  <div class="attraction right">
+    <img class="attraction-img" src="images/ganana.png" alt="פארק גאננה">
+    <img class="attraction-mascot" src="images/mascot_bush.png" alt="">
+    <div class="attraction-content">
+      <div class="attraction-num">01</div>
+      <div class="attraction-tag">פארק הרפתקאות</div>
+      <div class="attraction-title">פארק גאננה</div>
+      <div class="attraction-desc">טיפוס, זחילה ואתגר בין העצים — חוויה שהילדים לא ישכחו. הרפתקה ביער לכל המשפחה.</div>
+      <a href="/my" class="attraction-btn">להזמנה</a>
     </div>
+  </div>
 
-    <!-- ים המלח -->
-    <div class="card">
-      <div class="card-img-wrap">
-        <img class="bg" src="images/dead_sea.png" alt="ים המלח">
-        <img class="mascot" src="images/mascot_thumbs.png" alt="">
-      </div>
-      <div class="card-body">
-        <div class="card-tag">ים המלח</div>
-        <div class="card-title">ים המלח</div>
-        <div class="card-desc">צפים, נרגעים, נטענים — יום בלתי נשכח בנמוך שבעולם</div>
-      </div>
-      <a href="/my" class="card-btn">להזמנה</a>
+  <!-- ATTRACTION 2 — ים המלח (תוכן משמאל) -->
+  <div class="attraction left">
+    <img class="attraction-img" src="images/dead_sea.png" alt="ים המלח">
+    <img class="attraction-mascot" src="images/mascot_thumbs.png" alt="">
+    <div class="attraction-content">
+      <div class="attraction-num">02</div>
+      <div class="attraction-tag">ים המלח</div>
+      <div class="attraction-title">ים המלח</div>
+      <div class="attraction-desc">צפים, נרגעים, נטענים — יום בלתי נשכח בנמוך שבעולם. חוויה ייחודית לכל הגילאים.</div>
+      <a href="/my" class="attraction-btn">להזמנה</a>
     </div>
+  </div>
 
-    <!-- שיט בכנרת -->
-    <div class="card">
-      <div class="card-img-wrap">
-        <img class="bg" src="images/boat.png" alt="שיט בכנרת">
-        <img class="mascot" src="images/mascot_peek.png" alt="">
-      </div>
-      <div class="card-body">
-        <div class="card-tag">כנרת</div>
-        <div class="card-title">שיט בכנרת</div>
-        <div class="card-desc">עלייה לסירה, רוח בפנים, מים של שמחה — חוויה משפחתית מושלמת</div>
-      </div>
-      <a href="/my" class="card-btn">להזמנה</a>
+  <!-- ATTRACTION 3 — שיט (תוכן מימין) -->
+  <div class="attraction right">
+    <img class="attraction-img" src="images/boat.png" alt="שיט בכנרת">
+    <img class="attraction-mascot" src="images/mascot_peek.png" alt="">
+    <div class="attraction-content">
+      <div class="attraction-num">03</div>
+      <div class="attraction-tag">כנרת</div>
+      <div class="attraction-title">שיט בכנרת</div>
+      <div class="attraction-desc">עלייה לסירה, רוח בפנים, מים של שמחה. חוויה משפחתית מושלמת על מי הכנרת.</div>
+      <a href="/my" class="attraction-btn">להזמנה</a>
     </div>
+  </div>
 
-    <!-- אבובים -->
-    <div class="card">
-      <div class="card-img-wrap">
-        <img class="bg" src="images/tubes.png" alt="אבובים בכנרת">
-        <img class="mascot" src="images/mascot_sign.png" alt="">
-      </div>
-      <div class="card-body">
-        <div class="card-tag">אדרנלין על המים</div>
-        <div class="card-title">אבובים בכנרת</div>
-        <div class="card-desc">מהירות, צחוק ורטיבות — אדרנלין על המים לכל המשפחה</div>
-      </div>
-      <a href="/my" class="card-btn">להזמנה</a>
+  <!-- ATTRACTION 4 — אבובים (תוכן משמאל) -->
+  <div class="attraction left">
+    <img class="attraction-img" src="images/tubes.png" alt="אבובים בכנרת">
+    <img class="attraction-mascot" src="images/mascot_sign.png" alt="">
+    <div class="attraction-content">
+      <div class="attraction-num">04</div>
+      <div class="attraction-tag">אדרנלין על המים</div>
+      <div class="attraction-title">אבובים בכנרת</div>
+      <div class="attraction-desc">מהירות, צחוק ורטיבות — אדרנלין על המים לכל המשפחה. כיף בלתי נגמר!</div>
+      <a href="/my" class="attraction-btn">להזמנה</a>
     </div>
   </div>
 
   <!-- FOOTER -->
   <footer>
-    <img src="images/logo.png" alt="מקושרים" onerror="this.style.display='none'">
-    מקושרים — בין הזמנים
+    <img src="images/logo.png" alt="מקושרים">
+    מקושרים — בין הזמנים | קדשי סטאלין קארלין
   </footer>
 
   <script>
-    // אנימציית כרטיסים בגלילה
     const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry, i) => {
+      entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          setTimeout(() => entry.target.classList.add('visible'), i * 150);
+          entry.target.classList.add('visible');
           observer.unobserve(entry.target);
         }
       });
-    }, { threshold: 0.15 });
+    }, { threshold: 0.1 });
 
-    document.querySelectorAll('.card').forEach(card => observer.observe(card));
+    document.querySelectorAll('.attraction').forEach(el => observer.observe(el));
   </script>
 
 </body>
