@@ -204,14 +204,16 @@
     <img src="images/hero_mascot.png" class="hero-mascot" alt="">
   </section>
 
-  <!-- ילד גולש לאורך הדף -->
+  <!-- חבל זיפ-ליין -->
+  <canvas id="zipCanvas" style="position:fixed;top:0;left:0;pointer-events:none;z-index:49;"></canvas>
+
+  <!-- ילד גולש -->
   <img id="surfer" src="images/surfer.png" alt="" style="
     position: fixed;
-    width: clamp(100px, 12vw, 160px);
     z-index: 50;
     pointer-events: none;
-    transition: top .1s linear, right .3s ease, left .3s ease, transform .3s ease;
-    filter: drop-shadow(0 8px 16px rgba(0,0,0,0.4));
+    filter: drop-shadow(0 8px 20px rgba(0,0,0,0.5));
+    transition: none;
   ">
 
   <!-- BENEFITS TITLE -->
@@ -277,41 +279,93 @@
   </footer>
 
   <script>
-    // ── ילד גולש לאורך הדף ──
+    // ── זיפ-ליין: חבל + ילד גולש ──
     const surfer = document.getElementById('surfer');
-    const attractions = document.querySelectorAll('.attraction');
+    const zipCanvas = document.getElementById('zipCanvas');
+    const ctx = zipCanvas.getContext('2d');
+    const attractionEls = document.querySelectorAll('.attraction');
 
-    function updateSurfer() {
-      const scrollY = window.scrollY;
-      const docH = document.body.scrollHeight - window.innerHeight;
-      const progress = scrollY / docH; // 0 עד 1
-
-      // מיקום אנכי — עוקב אחר הגלילה
-      const topPct = 5 + progress * 85;
-      surfer.style.top = topPct + 'vh';
-
-      // מיקום אופקי — מתחלף לפי האטרקציה הנוכחית
-      let isRight = true;
-      attractions.forEach(a => {
-        const rect = a.getBoundingClientRect();
-        if (rect.top < window.innerHeight * 0.6 && rect.bottom > 0) {
-          isRight = a.classList.contains('right');
-        }
-      });
-
-      if (isRight) {
-        surfer.style.right = '3vw';
-        surfer.style.left = 'auto';
-        surfer.style.transform = 'rotate(-15deg)';
-      } else {
-        surfer.style.left = '3vw';
-        surfer.style.right = 'auto';
-        surfer.style.transform = 'scaleX(-1) rotate(-15deg)';
-      }
+    function resizeCanvas() {
+      zipCanvas.width = window.innerWidth;
+      zipCanvas.height = document.body.scrollHeight;
     }
 
-    window.addEventListener('scroll', updateSurfer, { passive: true });
-    updateSurfer();
+    // נקודות עגינה: ימין/שמאל לסירוגין לפי האטרקציות
+    function getAnchorPoints() {
+      const points = [];
+      attractionEls.forEach((el, i) => {
+        const rect = el.getBoundingClientRect();
+        const top = rect.top + window.scrollY + rect.height * 0.5;
+        const isRight = el.classList.contains('right');
+        // הילד בצד הנגדי לאטרקציה
+        const x = isRight
+          ? window.innerWidth * 0.12   // ילד בשמאל כשאטרקציה בימין
+          : window.innerWidth * 0.88;  // ילד בימין כשאטרקציה בשמאל
+        points.push({ x, y: top });
+      });
+      return points;
+    }
+
+    function drawRope(points) {
+      ctx.clearRect(0, 0, zipCanvas.width, zipCanvas.height);
+      if (points.length < 2) return;
+      ctx.beginPath();
+      ctx.moveTo(points[0].x, points[0].y);
+      for (let i = 1; i < points.length; i++) {
+        ctx.lineTo(points[i].x, points[i].y);
+      }
+      ctx.strokeStyle = 'rgba(212,160,23,0.5)';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([12, 8]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    function updateZip() {
+      const scrollY = window.scrollY;
+      const points = getAnchorPoints();
+      if (points.length < 2) return;
+
+      drawRope(points);
+
+      // מציאת המיקום על החבל לפי גלילה
+      const firstY = points[0].y;
+      const lastY = points[points.length - 1].y;
+      const totalRange = lastY - firstY;
+      const viewMid = scrollY + window.innerHeight * 0.4;
+      const t = Math.max(0, Math.min(1, (viewMid - firstY) / totalRange));
+
+      // אינטרפולציה בין נקודות
+      const segCount = points.length - 1;
+      const seg = Math.min(Math.floor(t * segCount), segCount - 1);
+      const segT = (t * segCount) - seg;
+      const p0 = points[seg];
+      const p1 = points[seg + 1];
+
+      const x = p0.x + (p1.x - p0.x) * segT;
+      const y = p0.y + (p1.y - p0.y) * segT;
+
+      // זווית הנסיעה
+      const dx = p1.x - p0.x;
+      const dy = p1.y - p0.y;
+      const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+
+      const size = Math.min(window.innerWidth * 0.12, 140);
+      surfer.style.width = size + 'px';
+      surfer.style.left = (x - size / 2) + 'px';
+      surfer.style.top = (y - window.scrollY - size / 2) + 'px';
+      surfer.style.right = 'auto';
+
+      // הפוך אם הולך שמאלה
+      const flip = dx < 0 ? 'scaleX(-1)' : '';
+      surfer.style.transform = `${flip} rotate(${angle * 0.4}deg)`;
+    }
+
+    window.addEventListener('scroll', updateZip, { passive: true });
+    window.addEventListener('resize', () => { resizeCanvas(); updateZip(); });
+
+    // מתחיל אחרי שה-DOM טעון
+    setTimeout(() => { resizeCanvas(); updateZip(); }, 300);
 
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
