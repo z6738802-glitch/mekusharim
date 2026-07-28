@@ -60,8 +60,8 @@ router.post('/contacts/bulk', async (req, res) => {
 // הורדת תבנית אקסל לדוגמה
 router.get('/contacts/template', (req, res) => {
   const rows = [
-    { 'טלפון': '0501234567', 'שם': 'ישראל ישראלי', 'בית כנסת': 'בית כנסת מרכזי' },
-    { 'טלפון': '0527654321', 'שם': 'משה כהן', 'בית כנסת': 'חסידי גור' },
+    { 'טלפון': '0501234567', 'טלפון נוסף': '', 'טלפון נוסף 2': '', 'שם': 'ישראל ישראלי', 'בית כנסת': 'בית כנסת מרכזי' },
+    { 'טלפון': '0527654321', 'טלפון נוסף': '0507654321', 'טלפון נוסף 2': '', 'שם': 'משה כהן', 'בית כנסת': 'חסידי גור' },
   ];
   const ws = XLSX.utils.json_to_sheet(rows);
   const wb = XLSX.utils.book_new();
@@ -72,7 +72,7 @@ router.get('/contacts/template', (req, res) => {
   res.send(buf);
 });
 
-// ייבוא מקובץ אקסל
+// ייבוא מקובץ אקסל/CSV
 router.post('/contacts/import', upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'no file' });
   try {
@@ -81,15 +81,16 @@ router.post('/contacts/import', upload.single('file'), async (req, res) => {
     const rows = XLSX.utils.sheet_to_json(ws);
     let inserted = 0;
     for (const r of rows) {
-      // תמיכה בכותרות עברית ואנגלית
       const phone = String(r['טלפון'] || r.phone || r.Phone || '').trim();
+      const phone2 = String(r['טלפון נוסף'] || r.phone2 || '').trim() || null;
+      const phone3 = String(r['טלפון נוסף 2'] || r.phone3 || '').trim() || null;
       const name = r['שם'] || r.name || r.Name || null;
       const synagogue = r['בית כנסת'] || r.synagogue || r.Synagogue || null;
       if (!phone) continue;
       await query(
-        `insert into contacts (phone, name, synagogue) values ($1,$2,$3)
-         on conflict (phone) do update set name=$2, synagogue=$3`,
-        [phone, name, synagogue]
+        `insert into contacts (phone, phone2, phone3, name, synagogue) values ($1,$2,$3,$4,$5)
+         on conflict (phone) do update set phone2=$2, phone3=$3, name=$4, synagogue=$5`,
+        [phone, phone2, phone3, name, synagogue]
       );
       inserted++;
     }

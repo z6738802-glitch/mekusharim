@@ -357,7 +357,10 @@
 
     window.exportCSV = () => {
       const list = window._contactsList || [];
-      const rows = [['טלפון','שם','בית כנסת'], ...list.map(c=>[c.phone, c.name||'', c.synagogue||''])];
+      const rows = [
+        ['טלפון', 'טלפון נוסף', 'טלפון נוסף 2', 'שם', 'בית כנסת'],
+        ...list.map(c => [c.phone, c.phone2||'', c.phone3||'', c.name||'', c.synagogue||''])
+      ];
       const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
       const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
