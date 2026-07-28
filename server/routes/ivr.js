@@ -52,6 +52,27 @@ router.all('/', async (req, res) => {
 
     const benefits = await B.getActiveBenefits();
 
+    // טיפול ב-replayAction לפני כל דבר אחר
+    // (ימות שולחת choice+replayAction ביחד כשחוזרים)
+    if (p.replayAction && p.replayAction !== 'None') {
+      const idx = parseInt(p.choice, 10) - 1;
+      const chosen = benefits[idx];
+      if (chosen && p.replayAction === '1') {
+        // שמיעה חוזרת של קופון
+        const codes = await C.getCustomerCoupons(chosen.id, phone);
+        const items = [file(REC.saveCouponNote)];
+        for (const code of codes) {
+          items.push(file(REC.yourCouponIs));
+          items.push(digits(code));
+        }
+        items.push(file(REC.couponUsage));
+        items.push(file(REC.replayMenu));
+        return send(res, read({ message: items, varName: 'replayAction' }));
+      }
+      // replayAction=2 = סיום
+      return send(res, hangup());
+    }
+
     // שלב 1: בחירת הטבה
     if ((!p.choice || p.choice === "None")) {
       return send(res, buildMenu(benefits));
