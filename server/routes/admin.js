@@ -32,6 +32,15 @@ router.post('/contacts', async (req, res) => {
   res.json(rows[0]);
 });
 
+router.put('/contacts/:id', async (req, res) => {
+  const { phone, name, synagogue } = req.body;
+  const { rows } = await query(
+    `update contacts set phone=$1, name=$2, synagogue=$3 where id=$4 returning *`,
+    [phone, name || null, synagogue || null, req.params.id]
+  );
+  res.json(rows[0]);
+});
+
 // העלאה מרובה (רשימת לקוחות)
 router.post('/contacts/bulk', async (req, res) => {
   const list = req.body.contacts || [];

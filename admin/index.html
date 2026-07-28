@@ -280,23 +280,105 @@
     };
     window.delCoupon = async (cid, bid, name) => { await api('/coupons/'+cid, {method:'DELETE'}); couponsModal(bid, name); };
     // ═══════════ לקוחות ═══════════
+    let selectedContacts = new Set();
+
     pages.contacts = async () => {
+      selectedContacts.clear();
       main.innerHTML = `<div class="page-title">${icon('users')} לקוחות מורשים</div>
-        <div class="toolbar"><span></span>
+        <div class="toolbar">
           <div style="display:flex;gap:8px">
-            <button class="btn btn-ghost" onclick="apiDownload('/contacts/template','contacts_template.xlsx')">${icon('download')} תבנית אקסל</button>
+            <button class="btn btn-danger hidden" id="btnDeleteSelected" onclick="deleteSelected()">${icon('trash-2')} מחק נבחרים (<span id="selectedCount">0</span>)</button>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost" onclick="exportCSV()">${icon('download')} ייצוא CSV</button>
+            <button class="btn btn-ghost" onclick="apiDownload('/contacts/template','contacts_template.xlsx')">${icon('file-down')} תבנית אקסל</button>
             <button class="btn btn-ghost" onclick="importModal()">${icon('file-up')} ייבוא קובץ</button>
-            <button class="btn btn-primary" onclick="contactModal()">${icon('plus')} לקוח חדש</button></div></div>
+            <button class="btn btn-primary" onclick="contactModal()">${icon('plus')} לקוח חדש</button>
+          </div>
+        </div>
         <div class="card"><div id="contactsList" class="empty">טוען...</div></div>`;
       refresh();
+      await loadContacts();
+    };
+
+    async function loadContacts() {
       const list = await api('/contacts');
       const el = document.getElementById('contactsList');
       if (!list.length) { el.className='empty'; el.textContent='אין לקוחות עדיין'; return; }
       el.className='';
-      el.innerHTML = `<table><thead><tr><th>טלפון</th><th>שם</th><th>בית כנסת</th><th></th></tr></thead>
-        <tbody>${list.map(c=>`<tr class="clickable" onclick="cardModal(${c.id})"><td>${c.phone}</td><td>${c.name||'—'}</td><td>${c.synagogue||'—'}</td>
-        <td onclick="event.stopPropagation()"><button class="btn btn-danger" onclick="delContact(${c.id})">${icon('trash-2')}</button></td></tr>`).join('')}</tbody></table>`;
+      el.innerHTML = `<table><thead><tr>
+        <th><input type="checkbox" id="chkAll" onchange="toggleAll(this)"></th>
+        <th>טלפון</th><th>שם</th><th>בית כנסת</th><th></th>
+        </tr></thead>
+        <tbody>${list.map(c=>`<tr>
+          <td onclick="event.stopPropagation()"><input type="checkbox" class="chk-contact" data-id="${c.id}" onchange="toggleContact(${c.id},this)"></td>
+          <td class="clickable" onclick="cardModal(${c.id})">${c.phone}</td>
+          <td class="clickable" onclick="cardModal(${c.id})">${c.name||'—'}</td>
+          <td class="clickable" onclick="cardModal(${c.id})">${c.synagogue||'—'}</td>
+          <td onclick="event.stopPropagation()" style="display:flex;gap:4px">
+            <button class="btn btn-ghost" style="padding:6px" onclick="editContact(${c.id},'${(c.phone||'').replace(/'/g,'')}','${(c.name||'').replace(/'/g,'')}','${(c.synagogue||'').replace(/'/g,'')}')" title="עריכה">${icon('pencil')}</button>
+            <button class="btn btn-danger" onclick="delContact(${c.id})" title="מחיקה">${icon('trash-2')}</button>
+          </td></tr>`).join('')}
+        </tbody></table>`;
       refresh();
+      // שמירת הרשימה לייצוא
+      window._contactsList = list;
+    }
+
+    window.toggleAll = (chk) => {
+      document.querySelectorAll('.chk-contact').forEach(c => {
+        c.checked = chk.checked;
+        const id = parseInt(c.dataset.id);
+        if (chk.checked) selectedContacts.add(id);
+        else selectedContacts.delete(id);
+      });
+      updateSelectionUI();
+    };
+    window.toggleContact = (id, chk) => {
+      if (chk.checked) selectedContacts.add(id);
+      else selectedContacts.delete(id);
+      updateSelectionUI();
+    };
+    function updateSelectionUI() {
+      const btn = document.getElementById('btnDeleteSelected');
+      const cnt = document.getElementById('selectedCount');
+      if (selectedContacts.size > 0) { btn.classList.remove('hidden'); cnt.textContent = selectedContacts.size; }
+      else btn.classList.add('hidden');
+    }
+    window.deleteSelected = async () => {
+      if (!confirm(`למחוק ${selectedContacts.size} לקוחות?`)) return;
+      for (const id of selectedContacts) {
+        await api('/contacts/'+id, {method:'DELETE'});
+      }
+      selectedContacts.clear();
+      await loadContacts();
+    };
+
+    window.exportCSV = () => {
+      const list = window._contactsList || [];
+      const rows = [['טלפון','שם','בית כנסת'], ...list.map(c=>[c.phone, c.name||'', c.synagogue||''])];
+      const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+      const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+      a.download = 'contacts.csv'; a.click();
+    };
+
+    window.editContact = (id, phone, name, synagogue) => {
+      modalRoot.innerHTML = `<div class="modal-bg" onclick="if(event.target===this)closeModal()">
+        <div class="modal"><h3>עריכת לקוח</h3>
+          <div class="field"><label>טלפון</label><input id="cPhone" value="${phone}"></div>
+          <div class="field"><label>שם</label><input id="cName" value="${name}"></div>
+          <div class="field"><label>בית כנסת</label><input id="cSyn" value="${synagogue}"></div>
+          <div class="row" style="margin-top:8px">
+            <button class="btn btn-ghost" onclick="closeModal()">ביטול</button>
+            <button class="btn btn-primary" onclick="updateContact(${id})">שמירה</button>
+          </div>
+        </div></div>`;
+      refresh();
+    };
+    window.updateContact = async (id) => {
+      await api('/contacts/'+id, { method:'PUT', body: JSON.stringify({ phone:cPhone.value, name:cName.value, synagogue:cSyn.value }) });
+      closeModal(); await loadContacts();
     };
     window.contactModal = () => {
       modalRoot.innerHTML = `<div class="modal-bg" onclick="if(event.target===this)closeModal()">
