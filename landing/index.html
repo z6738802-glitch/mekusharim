@@ -204,6 +204,16 @@
     <img src="images/hero_mascot.png" class="hero-mascot" alt="">
   </section>
 
+  <!-- ילד גולש לאורך הדף -->
+  <img id="surfer" src="images/surfer.png" alt="" style="
+    position: fixed;
+    width: clamp(100px, 12vw, 160px);
+    z-index: 50;
+    pointer-events: none;
+    transition: top .1s linear, right .3s ease, left .3s ease, transform .3s ease;
+    filter: drop-shadow(0 8px 16px rgba(0,0,0,0.4));
+  ">
+
   <!-- BENEFITS TITLE -->
   <div class="benefits-title">ההטבות <em>שחיכיתם</em> להן</div>
   <div class="benefits-sub">ארבע חוויות. קיץ אחד. בשבילכם.</div>
@@ -267,6 +277,42 @@
   </footer>
 
   <script>
+    // ── ילד גולש לאורך הדף ──
+    const surfer = document.getElementById('surfer');
+    const attractions = document.querySelectorAll('.attraction');
+
+    function updateSurfer() {
+      const scrollY = window.scrollY;
+      const docH = document.body.scrollHeight - window.innerHeight;
+      const progress = scrollY / docH; // 0 עד 1
+
+      // מיקום אנכי — עוקב אחר הגלילה
+      const topPct = 5 + progress * 85;
+      surfer.style.top = topPct + 'vh';
+
+      // מיקום אופקי — מתחלף לפי האטרקציה הנוכחית
+      let isRight = true;
+      attractions.forEach(a => {
+        const rect = a.getBoundingClientRect();
+        if (rect.top < window.innerHeight * 0.6 && rect.bottom > 0) {
+          isRight = a.classList.contains('right');
+        }
+      });
+
+      if (isRight) {
+        surfer.style.right = '3vw';
+        surfer.style.left = 'auto';
+        surfer.style.transform = 'rotate(-15deg)';
+      } else {
+        surfer.style.left = '3vw';
+        surfer.style.right = 'auto';
+        surfer.style.transform = 'scaleX(-1) rotate(-15deg)';
+      }
+    }
+
+    window.addEventListener('scroll', updateSurfer, { passive: true });
+    updateSurfer();
+
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
