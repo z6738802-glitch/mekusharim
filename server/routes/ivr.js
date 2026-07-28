@@ -32,6 +32,7 @@ const REC = {
   deleteMenu:     `${DIR}/021`, // "למחיקה הקש 1, לביטול הקש 2"
   welcomeMsg:     `${DIR}/022`, // הסבר לפני תפריט ההטבות
   couponUsage:    `${DIR}/023`, // איפה אפשר להשתמש בקופון
+  confirmDelete:  `${DIR}/024`, // "האם אתה בטוח? לאישור הקש 1, לביטול הקש 2"
 };
 
 const REC_DIR = `${DIR}/recordings`;
@@ -192,65 +193,64 @@ function buildMenu(benefits) {
 // כבר בחר את אותה הטבה
 async function handleExisting(res, benefit, phone, p) {
   if (benefit.type === 'coupon') {
-    // קופון: שמע 004 ("כבר בחרת הטבה זו") + תפריט קופון
     if ((!p.couponAction || p.couponAction === "None")) {
       return send(res, read({
-        message: [
-          file(REC.alreadyThisOne),
-          file(REC.couponMenu),
-        ],
+        message: [file(REC.alreadyThisOne), file(REC.couponMenu)],
         varName: 'couponAction',
-        confirm: true,
       }));
     }
     if (p.couponAction === '1') {
-      // שמיעת קופונים + תפריט חזרה
+      // שמיעת קופונים
       const codes = await C.getCustomerCoupons(benefit.id, phone);
-      if ((!p.replayAction || p.replayAction === "None")) {
-        const items = [file(REC.saveCouponNote)];
-        for (const code of codes) {
-          items.push(file(REC.yourCouponIs));
-          items.push(digits(code));
-        }
-        items.push(file(REC.couponUsage));
-        items.push(file(REC.replayMenu));
-        return send(res, read({ message: items, varName: 'replayAction' }));
+      const items = [file(REC.saveCouponNote)];
+      for (const code of codes) {
+        items.push(file(REC.yourCouponIs));
+        items.push(digits(code));
       }
-      if (p.replayAction === '1') {
-        // שמיעה חוזרת — מאפס replayAction
-        const items = [file(REC.saveCouponNote)];
-        for (const code of codes) {
-          items.push(file(REC.yourCouponIs));
-          items.push(digits(code));
-        }
-        items.push(file(REC.couponUsage));
-        items.push(file(REC.replayMenu));
-        return send(res, read({ message: items, varName: 'replayAction' }));
-      }
-      // 2 = סיום
-      return send(res, hangup());
+      items.push(file(REC.couponUsage));
+      items.push(file(REC.replayMenu));
+      return send(res, read({ message: items, varName: 'replayAction' }));
     }
     if (p.couponAction === '2') {
-      // מחיקה
-      await C.releaseCoupons(benefit.id, phone);
-      await B.removeAllSelections(benefit.id, phone);
-      return send(res, respond(play(file(REC.cancelled)), hangup()));
+      // אישור מחיקה
+      if ((!p.confirmDel || p.confirmDel === "None")) {
+        return send(res, read({
+          message: [file(REC.confirmDelete)],
+          varName: 'confirmDel',
+        }));
+      }
+      if (p.confirmDel === '1') {
+        await C.releaseCoupons(benefit.id, phone);
+        await B.removeAllSelections(benefit.id, phone);
+        return send(res, respond(play(file(REC.cancelled)), hangup()));
+      }
+      // ביטול → חזרה
+      return send(res, hangup());
     }
-    // 3 = חזרה לשלוחה ראשית
+    // 3 = חזרה
     return send(res, hangup());
   }
 
-  // הרשמה: שמע 004 ("כבר בחרת הטבה זו") + תפריט מחיקה
+  // הרשמה: שמע 004 + תפריט מחיקה
   if ((!p.deleteAction || p.deleteAction === "None")) {
     return send(res, read({
       message: [file(REC.alreadyThisOne), file(REC.deleteMenu)],
       varName: 'deleteAction',
-      confirm: true,
     }));
   }
   if (p.deleteAction === '1') {
-    await B.removeAllSelections(benefit.id, phone);
-    return send(res, respond(play(file(REC.cancelled)), hangup()));
+    // אישור מחיקה
+    if ((!p.confirmDel || p.confirmDel === "None")) {
+      return send(res, read({
+        message: [file(REC.confirmDelete)],
+        varName: 'confirmDel',
+      }));
+    }
+    if (p.confirmDel === '1') {
+      await B.removeAllSelections(benefit.id, phone);
+      return send(res, respond(play(file(REC.cancelled)), hangup()));
+    }
+    return send(res, hangup());
   }
   // 2 = חזרה לשלוחה ראשית
   return send(res, hangup());
