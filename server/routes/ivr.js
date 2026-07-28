@@ -192,12 +192,10 @@ function buildMenu(benefits) {
 // כבר בחר את אותה הטבה
 async function handleExisting(res, benefit, phone, p) {
   if (benefit.type === 'coupon') {
-    // קופון: שמע 003 + שם הטבה + 004 + תפריט קופון
+    // קופון: שמע 004 ("כבר בחרת הטבה זו") + תפריט קופון
     if ((!p.couponAction || p.couponAction === "None")) {
       return send(res, read({
         message: [
-          file(REC.alreadyChose),
-          file(benefitRec(benefit)),
           file(REC.alreadyThisOne),
           file(REC.couponMenu),
         ],
@@ -242,10 +240,10 @@ async function handleExisting(res, benefit, phone, p) {
     return send(res, hangup());
   }
 
-  // הרשמה: שמע 003 + שם הטבה + תפריט מחיקה (021)
+  // הרשמה: שמע 004 ("כבר בחרת הטבה זו") + תפריט מחיקה
   if ((!p.deleteAction || p.deleteAction === "None")) {
     return send(res, read({
-      message: [file(REC.alreadyChose), file(benefitRec(benefit)), file(REC.deleteMenu)],
+      message: [file(REC.alreadyThisOne), file(REC.deleteMenu)],
       varName: 'deleteAction',
       confirm: true,
     }));
