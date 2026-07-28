@@ -1,12 +1,15 @@
 import { query } from '../db/index.js';
 
-/** האם המספר ברשימת הלקוחות המורשים */
+/** האם המספר מורשה — מחזיר את ה-phone הראשי (לבדיקת הזמנות) */
 export async function isAuthorized(phone) {
   const { rows } = await query(
-    `select 1 from contacts where phone = $1 limit 1`,
+    `select phone from contacts 
+      where phone = $1 or phone2 = $1 or phone3 = $1
+      limit 1`,
     [phone]
   );
-  return rows.length > 0;
+  if (!rows.length) return null;
+  return rows[0].phone; // מחזיר את ה-phone הראשי
 }
 
 /** רשימת ההטבות הפעילות, לפי סדר התפריט */

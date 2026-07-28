@@ -39,13 +39,16 @@ const benefitRec = (b) => b.recording || `${DIR}/Benefits/${b.id}`;
 
 router.all('/', async (req, res) => {
   const p = { ...req.query, ...req.body };
-  const phone = p.ApiPhone;
+  let phone = p.ApiPhone;
 
   try {
-    // שלב 0: הרשאה
-    if (!(await B.isAuthorized(phone))) {
+    // שלב 0: הרשאה — מחזיר phone ראשי
+    const primaryPhone = await B.isAuthorized(phone);
+    if (!primaryPhone) {
       return send(res, respond(play(file(REC.notAuthorized)), hangup()));
     }
+    // כל הבדיקות וההזמנות לפי ה-phone הראשי
+    phone = primaryPhone;
 
     const benefits = await B.getActiveBenefits();
 

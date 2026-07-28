@@ -11,7 +11,8 @@ router.post('/login', async (req, res) => {
   if (!phone) return res.status(400).json({ error: 'missing phone' });
 
   const { rows } = await query(
-    `select id, name, phone, synagogue from mekusharim.contacts where phone = $1`,
+    `select id, name, phone, synagogue from mekusharim.contacts 
+      where phone = $1 or phone2 = $1 or phone3 = $1 limit 1`,
     [phone]
   );
   if (!rows.length) return res.status(401).json({ error: 'not_authorized' });

@@ -22,21 +22,21 @@ router.get('/contacts', async (req, res) => {
 });
 
 router.post('/contacts', async (req, res) => {
-  const { phone, name, synagogue } = req.body;
+  const { phone, phone2, phone3, name, synagogue } = req.body;
   const { rows } = await query(
-    `insert into contacts (phone, name, synagogue) values ($1,$2,$3)
-     on conflict (phone) do update set name=$2, synagogue=$3
+    `insert into contacts (phone, phone2, phone3, name, synagogue) values ($1,$2,$3,$4,$5)
+     on conflict (phone) do update set phone2=$2, phone3=$3, name=$4, synagogue=$5
      returning *`,
-    [phone, name || null, synagogue || null]
+    [phone, phone2 || null, phone3 || null, name || null, synagogue || null]
   );
   res.json(rows[0]);
 });
 
 router.put('/contacts/:id', async (req, res) => {
-  const { phone, name, synagogue } = req.body;
+  const { phone, phone2, phone3, name, synagogue } = req.body;
   const { rows } = await query(
-    `update contacts set phone=$1, name=$2, synagogue=$3 where id=$4 returning *`,
-    [phone, name || null, synagogue || null, req.params.id]
+    `update contacts set phone=$1, phone2=$2, phone3=$3, name=$4, synagogue=$5 where id=$6 returning *`,
+    [phone, phone2 || null, phone3 || null, name || null, synagogue || null, req.params.id]
   );
   res.json(rows[0]);
 });

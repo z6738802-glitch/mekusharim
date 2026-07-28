@@ -316,7 +316,7 @@
           <td class="clickable" onclick="cardModal(${c.id})">${c.name||'—'}</td>
           <td class="clickable" onclick="cardModal(${c.id})">${c.synagogue||'—'}</td>
           <td onclick="event.stopPropagation()" style="display:flex;gap:4px">
-            <button class="btn btn-ghost" style="padding:6px" onclick="editContact(${c.id},'${(c.phone||'').replace(/'/g,'')}','${(c.name||'').replace(/'/g,'')}','${(c.synagogue||'').replace(/'/g,'')}')" title="עריכה">${icon('pencil')}</button>
+            <button class="btn btn-ghost" style="padding:6px" onclick="editContact(${c.id},'${(c.phone||'').replace(/'/g,'')}','${(c.phone2||'').replace(/'/g,'')}','${(c.phone3||'').replace(/'/g,'')}','${(c.name||'').replace(/'/g,'')}','${(c.synagogue||'').replace(/'/g,'')}')" title="עריכה">${icon('pencil')}</button>
             <button class="btn btn-danger" onclick="delContact(${c.id})" title="מחיקה">${icon('trash-2')}</button>
           </td></tr>`).join('')}
         </tbody></table>`;
@@ -363,10 +363,12 @@
       a.download = 'contacts.csv'; a.click();
     };
 
-    window.editContact = (id, phone, name, synagogue) => {
+    window.editContact = (id, phone, phone2, phone3, name, synagogue) => {
       modalRoot.innerHTML = `<div class="modal-bg" onclick="if(event.target===this)closeModal()">
         <div class="modal"><h3>עריכת לקוח</h3>
-          <div class="field"><label>טלפון</label><input id="cPhone" value="${phone}"></div>
+          <div class="field"><label>טלפון ראשי</label><input id="cPhone" value="${phone}"></div>
+          <div class="field"><label>טלפון נוסף</label><input id="cPhone2" value="${phone2}"></div>
+          <div class="field"><label>טלפון נוסף 2</label><input id="cPhone3" value="${phone3}"></div>
           <div class="field"><label>שם</label><input id="cName" value="${name}"></div>
           <div class="field"><label>בית כנסת</label><input id="cSyn" value="${synagogue}"></div>
           <div class="row" style="margin-top:8px">
@@ -377,13 +379,21 @@
       refresh();
     };
     window.updateContact = async (id) => {
-      await api('/contacts/'+id, { method:'PUT', body: JSON.stringify({ phone:cPhone.value, name:cName.value, synagogue:cSyn.value }) });
+      await api('/contacts/'+id, { method:'PUT', body: JSON.stringify({
+        phone: cPhone.value,
+        phone2: document.getElementById('cPhone2').value || null,
+        phone3: document.getElementById('cPhone3').value || null,
+        name: cName.value,
+        synagogue: cSyn.value
+      }) });
       closeModal(); await loadContacts();
     };
     window.contactModal = () => {
       modalRoot.innerHTML = `<div class="modal-bg" onclick="if(event.target===this)closeModal()">
         <div class="modal"><h3>לקוח חדש</h3>
-          <div class="field"><label>טלפון</label><input id="cPhone"></div>
+          <div class="field"><label>טלפון ראשי</label><input id="cPhone"></div>
+          <div class="field"><label>טלפון נוסף (אופציונלי)</label><input id="cPhone2"></div>
+          <div class="field"><label>טלפון נוסף 2 (אופציונלי)</label><input id="cPhone3"></div>
           <div class="field"><label>שם</label><input id="cName"></div>
           <div class="field"><label>בית כנסת (אופציונלי)</label><input id="cSyn"></div>
           <div class="row" style="margin-top:8px">
@@ -393,8 +403,10 @@
       refresh();
     };
     window.saveContact = async () => {
-      await api('/contacts', { method:'POST', body: JSON.stringify({ phone:cPhone.value, name:cName.value, synagogue:cSyn.value }) });
-      closeModal(); pages.contacts();
+      const p2 = document.getElementById('cPhone2')?.value||'';
+      const p3 = document.getElementById('cPhone3')?.value||'';
+      await api('/contacts', { method:'POST', body: JSON.stringify({ phone:cPhone.value, phone2:p2||null, phone3:p3||null, name:cName.value, synagogue:cSyn.value }) });
+      closeModal(); await loadContacts();
     };
     window.delContact = async (id) => { if(confirm('למחוק?')){ await api('/contacts/'+id,{method:'DELETE'}); pages.contacts(); }};
 
