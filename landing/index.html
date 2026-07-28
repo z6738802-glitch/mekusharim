@@ -173,6 +173,18 @@
       box-shadow: 0 6px 24px rgba(212,160,23,0.3);
       transition: transform .2s, box-shadow .2s;
       font-family: 'Heebo', sans-serif;
+      align-self: flex-start;
+    }
+    .attraction-tag {
+      display: inline-block !important;
+      align-self: flex-start;
+      padding: 5px 16px;
+      background: rgba(212,160,23,0.12);
+      border: 1px solid rgba(212,160,23,0.5);
+      border-radius: 20px;
+      font-size: 13px;
+      color: var(--gold);
+      margin-bottom: 12px;
     }
     .attraction-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(212,160,23,0.5); }
 
@@ -183,6 +195,92 @@
       color: rgba(253,246,227,0.3); font-size: 14px;
     }
     footer img { height: 60px; opacity: .45; display: block; margin: 0 auto 14px; }
+
+    /* אנימציות נוספות */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInRight {
+      from { opacity: 0; transform: translateX(40px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes fadeInLeft {
+      from { opacity: 0; transform: translateX(-40px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    @keyframes floatBob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+
+    .attraction.visible .attraction-content > * {
+      opacity: 0;
+      animation: fadeInUp .6s ease forwards;
+    }
+    .attraction.right.visible .attraction-content > * {
+      animation-name: fadeInRight;
+    }
+    .attraction.left.visible .attraction-content > * {
+      animation-name: fadeInLeft;
+    }
+    .attraction.visible .attraction-content > *:nth-child(1) { animation-delay: .1s; }
+    .attraction.visible .attraction-content > *:nth-child(2) { animation-delay: .2s; }
+    .attraction.visible .attraction-content > *:nth-child(3) { animation-delay: .3s; }
+    .attraction.visible .attraction-content > *:nth-child(4) { animation-delay: .4s; }
+    .attraction.visible .attraction-content > *:nth-child(5) { animation-delay: .5s; }
+
+    .attraction.visible .attraction-img {
+      animation: scaleIn 1s ease;
+    }
+
+    .hero-cta, .attraction-btn {
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-cta::before, .attraction-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+      background-size: 200% 100%;
+      animation: shimmer 3s infinite;
+      pointer-events: none;
+    }
+
+    .hero-mascot { animation: mascotIn 1s ease forwards, floatBob 4s ease-in-out infinite 1s; }
+
+    .attraction-num {
+      transition: transform .3s ease;
+    }
+    .attraction:hover .attraction-num {
+      transform: scale(1.1);
+      color: rgba(212,160,23,0.3);
+    }
+
+    .attraction-img-wrap {
+      transition: transform .4s ease;
+    }
+    .attraction:hover .attraction-img {
+      transform: scale(1.03);
+      transition: transform .5s ease;
+    }
+    .attraction-img {
+      transition: transform .5s ease;
+    }
+
   </style>
 </head>
 <body>
