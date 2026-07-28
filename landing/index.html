@@ -7,19 +7,22 @@
   <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700;900&display=swap" rel="stylesheet">
   <style>
     :root {
-      --burgundy: #6B1A2A;
-      --burgundy-dark: #4A0F1C;
-      --gold: #D4A017;
-      --gold-light: #F0C040;
-      --cream: #FDF6E3;
-      --dark: #1a0810;
+      --bg: #FFF9EF;
+      --bg-2: #FDF3DE;
+      --gold: #E5A93A;
+      --gold-light: #F5C560;
+      --gold-dark: #B8801C;
+      --text: #3A2A1A;
+      --text-dim: #7A6852;
+      --accent: #E88A5A;
+      --border: rgba(184,128,28,0.15);
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html { scroll-behavior: smooth; }
     body {
       font-family: 'Heebo', sans-serif;
-      background: var(--dark);
-      color: var(--cream);
+      background: var(--bg);
+      color: var(--text);
       overflow-x: hidden;
     }
 
@@ -28,13 +31,14 @@
       position: fixed; top: 0; right: 0; left: 0; z-index: 100;
       padding: 16px 32px;
       display: flex; align-items: center; justify-content: space-between;
-      background: linear-gradient(to bottom, rgba(18,6,8,0.95), transparent);
+      background: linear-gradient(to bottom, rgba(255,249,239,0.95), transparent); backdrop-filter: blur(8px);
     }
     .nav-logo { height: 52px; }
     .nav-cta {
       padding: 10px 28px;
       background: linear-gradient(135deg, var(--gold), var(--gold-light));
-      color: var(--burgundy-dark); font-weight: 900; font-size: 15px;
+      color: white; font-weight: 700; font-size: 15px;
+      box-shadow: 0 4px 16px rgba(229,169,58,0.35);
       border-radius: 50px; text-decoration: none;
       font-family: 'Heebo', sans-serif;
       transition: transform .2s;
@@ -44,7 +48,7 @@
     /* ── HERO ── */
     .hero {
       min-height: 100vh;
-      background: radial-gradient(ellipse at 60% 40%, rgba(140,35,55,0.9) 0%, var(--dark) 65%);
+      background: linear-gradient(135deg, #FFF9EF 0%, #FFE9C7 50%, #FFD69E 100%);
       display: flex; align-items: center;
       padding: 100px 6vw 60px;
       position: relative; overflow: hidden;
@@ -59,26 +63,27 @@
     .hero-text { flex: 1; position: relative; z-index: 1; }
     .hero-badge {
       display: inline-block; padding: 6px 20px;
-      border: 1px solid rgba(212,160,23,0.5);
+      border: 1px solid rgba(184,128,28,0.35);
+      background: rgba(255,255,255,0.6);
       border-radius: 30px; font-size: 13px;
-      color: var(--gold); margin-bottom: 20px; letter-spacing: 1px;
+      color: var(--gold-dark); margin-bottom: 20px; letter-spacing: 1px;
     }
     .hero-title {
       font-size: clamp(2.8rem, 6vw, 5.5rem);
       font-weight: 900; line-height: 1.05;
-      text-shadow: 0 4px 24px rgba(0,0,0,0.6);
+      text-shadow: 0 2px 12px rgba(184,128,28,0.15);
     }
-    .hero-title em { color: var(--gold); font-style: normal; }
+    .hero-title em { color: var(--gold-dark); font-style: normal; }
     .hero-desc {
       margin-top: 16px; font-size: 1.15rem;
-      color: rgba(253,246,227,0.65); font-weight: 300;
+      color: var(--text-dim); font-weight: 400;
       max-width: 440px;
     }
     .hero-btn {
       margin-top: 36px; display: inline-block;
       padding: 18px 52px;
       background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
-      color: var(--burgundy-dark); font-weight: 900; font-size: 1.1rem;
+      color: white; font-weight: 900; font-size: 1.1rem;
       border-radius: 50px; text-decoration: none;
       box-shadow: 0 8px 32px rgba(212,160,23,0.35);
       transition: transform .2s, box-shadow .2s;
@@ -99,9 +104,9 @@
       text-align: center; padding: 80px 20px 16px;
       font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 900;
     }
-    .benefits-title em { color: var(--gold); font-style: normal; }
+    .benefits-title em { color: var(--gold-dark); font-style: normal; }
     .benefits-sub {
-      text-align: center; color: rgba(253,246,227,0.5);
+      text-align: center; color: var(--text-dim);
       font-size: 1rem; margin-bottom: 60px;
     }
 
@@ -113,7 +118,7 @@
       position: relative;
       opacity: 0; transform: translateY(50px);
       transition: opacity .7s ease, transform .7s ease;
-      border-bottom: 1px solid rgba(212,160,23,0.1);
+      border-bottom: 1px solid var(--border);
     }
     .attraction.visible { opacity: 1; transform: translateY(0); }
 
@@ -126,8 +131,8 @@
       width: 100%; height: 100%;
       object-fit: contain;
       object-position: center;
-      filter: brightness(0.9);
-      background: #1a0810;
+      filter: brightness(1.05);
+      background: var(--bg-2);
       display: block;
     }
 
@@ -142,7 +147,7 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
-      background: rgba(26,8,16,0.95);
+      background: var(--bg);
     }
 
     .attraction-mascot { display: none; }
@@ -150,7 +155,7 @@
 
     .attraction-num {
       font-size: 5rem; font-weight: 900; line-height: 1;
-      color: rgba(212,160,23,0.15); margin-bottom: -16px;
+      color: rgba(229,169,58,0.25); margin-bottom: -16px;
     }
     .attraction-tag {
       display: inline-block; padding: 4px 14px; margin-bottom: 10px;
@@ -162,13 +167,13 @@
       margin-bottom: 10px; line-height: 1.1;
     }
     .attraction-desc {
-      color: rgba(253,246,227,0.65); font-size: 1rem;
+      color: var(--text-dim); font-size: 1rem;
       line-height: 1.65; margin-bottom: 28px;
     }
     .attraction-btn {
       display: inline-block; padding: 14px 40px;
       background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
-      color: var(--burgundy-dark); font-weight: 900; font-size: 1rem;
+      color: white; font-weight: 900; font-size: 1rem;
       border-radius: 50px; text-decoration: none;
       box-shadow: 0 6px 24px rgba(212,160,23,0.3);
       transition: transform .2s, box-shadow .2s;
@@ -179,11 +184,11 @@
       display: inline-block !important;
       align-self: flex-start;
       padding: 5px 16px;
-      background: rgba(212,160,23,0.12);
-      border: 1px solid rgba(212,160,23,0.5);
+      background: rgba(229,169,58,0.15);
+      border: 1px solid rgba(229,169,58,0.4);
       border-radius: 20px;
       font-size: 13px;
-      color: var(--gold);
+      color: var(--gold-dark);
       margin-bottom: 12px;
     }
     .attraction-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(212,160,23,0.5); }
@@ -191,8 +196,8 @@
     /* ── FOOTER ── */
     footer {
       text-align: center; padding: 48px 20px;
-      border-top: 1px solid rgba(212,160,23,0.12);
-      color: rgba(253,246,227,0.3); font-size: 14px;
+      border-top: 1px solid var(--border);
+      color: var(--text-dim); font-size: 14px;
     }
     footer img { height: 60px; opacity: .45; display: block; margin: 0 auto 14px; }
 
