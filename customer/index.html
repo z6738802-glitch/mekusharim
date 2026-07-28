@@ -8,17 +8,27 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     :root {
-      --bg: #0f1419; --surface: #1a1f2e; --surface-2: #232838; --border: #2d3444;
-      --text: #e8eaed; --text-dim: #9aa0a9; --accent: #4f8cff; --accent-dim: #2d4a7c;
-      --green: #34c77b; --red: #ef5350; --amber: #f5a623; --radius: 12px;
+      --bg: #FFF9EF;
+      --surface: #FFFFFF;
+      --surface-2: #FDF3DE;
+      --border: rgba(184,128,28,0.15);
+      --text: #3A2A1A;
+      --text-dim: #7A6852;
+      --accent: #E5A93A;
+      --accent-dim: #B8801C;
+      --gold-light: #F5C560;
+      --green: #4CAF50;
+      --red: #E57373;
+      --amber: #F5B840;
+      --radius: 14px;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { direction: rtl; text-align: right; font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
     .container { max-width: 520px; margin: 0 auto; padding: 24px 16px; }
     .header { text-align: center; padding: 32px 0 24px; }
-    .header h1 { font-size: 28px; font-weight: 700; color: var(--accent); }
+    .header h1 { font-size: 32px; font-weight: 900; color: var(--accent-dim); }
     .header p { color: var(--text-dim); margin-top: 6px; }
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; box-shadow: 0 6px 24px rgba(184,128,28,0.08); }
     .card h2 { font-size: 18px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
     .card h2 svg { width: 20px; height: 20px; color: var(--accent); }
     .field { margin-bottom: 14px; }
@@ -27,23 +37,23 @@
     input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
     .btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 13px 20px; border-radius: 8px; border: none; cursor: pointer; font-family: inherit; font-size: 15px; font-weight: 600; transition: all .15s; width: 100%; }
     .btn svg { width: 18px; height: 18px; }
-    .btn-primary { background: var(--accent); color: white; }
-    .btn-primary:hover { background: #3d7aef; }
-    .btn-primary:disabled { background: var(--surface-2); color: var(--text-dim); cursor: not-allowed; }
-    .btn-ghost { background: var(--surface-2); color: var(--text); }
-    .btn-danger { background: rgba(239,83,80,.15); color: var(--red); }
-    .error { background: rgba(239,83,80,.1); border: 1px solid rgba(239,83,80,.3); border-radius: 8px; padding: 12px 14px; color: var(--red); font-size: 14px; margin-bottom: 14px; }
-    .success { background: rgba(52,199,123,.1); border: 1px solid rgba(52,199,123,.3); border-radius: 8px; padding: 12px 14px; color: var(--green); font-size: 14px; margin-bottom: 14px; }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), var(--gold-light)); color: white; font-weight: 700; box-shadow: 0 4px 16px rgba(229,169,58,0.35); }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(229,169,58,0.5); }
+    .btn-primary:disabled { background: var(--surface-2); color: var(--text-dim); cursor: not-allowed; box-shadow: none; }
+    .btn-ghost { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+    .btn-danger { background: rgba(229,115,115,.15); color: #C62828; border: 1px solid rgba(229,115,115,.25); }
+    .error { background: rgba(229,115,115,.1); border: 1px solid rgba(229,115,115,.3); border-radius: 8px; padding: 12px 14px; color: #C62828; font-size: 14px; margin-bottom: 14px; }
+    .success { background: rgba(76,175,80,.12); border: 1px solid rgba(76,175,80,.3); border-radius: 8px; padding: 12px 14px; color: #2E7D32; font-size: 14px; margin-bottom: 14px; }
     .badge { padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
-    .badge-green { background: rgba(52,199,123,.15); color: var(--green); }
-    .badge-amber { background: rgba(245,166,35,.15); color: var(--amber); }
-    .benefit-item { background: var(--surface-2); border-radius: 10px; padding: 16px; margin-bottom: 10px; cursor: pointer; border: 2px solid transparent; transition: all .15s; }
-    .benefit-item:hover { border-color: var(--accent-dim); }
+    .badge-green { background: rgba(76,175,80,.15); color: #2E7D32; }
+    .badge-amber { background: rgba(245,184,64,.2); color: var(--accent-dim); }
+    .benefit-item { background: var(--surface-2); border-radius: 12px; padding: 16px; margin-bottom: 10px; cursor: pointer; border: 2px solid transparent; transition: all .2s; }
+    .benefit-item:hover { border-color: var(--accent); background: #FFFFFF; box-shadow: 0 4px 12px rgba(229,169,58,0.15); }
     .benefit-item.selected { border-color: var(--accent); }
-    .benefit-item.ordered { border-color: var(--green); opacity: .7; cursor: default; }
+    .benefit-item.ordered { border-color: var(--green); opacity: .75; cursor: default; background: rgba(76,175,80,.08); }
     .benefit-name { font-weight: 600; font-size: 16px; margin-bottom: 4px; }
     .benefit-meta { color: var(--text-dim); font-size: 13px; display: flex; gap: 12px; flex-wrap: wrap; }
-    .coupon-code { background: var(--surface-2); border-radius: 8px; padding: 12px 16px; font-size: 20px; font-weight: 700; text-align: center; letter-spacing: 2px; color: var(--amber); margin: 8px 0; border: 1px dashed var(--amber); }
+    .coupon-code { background: linear-gradient(135deg, #FFF3D6, #FFE4A6); border-radius: 12px; padding: 14px 16px; font-size: 22px; font-weight: 900; text-align: center; letter-spacing: 3px; color: var(--accent-dim); margin: 8px 0; border: 2px dashed var(--accent); }
     .section-h { font-size: 15px; font-weight: 700; margin: 16px 0 10px; color: var(--text-dim); }
     .hidden { display: none; }
     .spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,.3); border-top-color: white; border-radius: 50%; animation: spin .7s linear infinite; }
