@@ -176,8 +176,8 @@
       el.className = '';
       el.innerHTML = `<table><thead><tr>
         <th>שם</th><th>סוג</th><th>מלאי</th><th>נבחר</th><th>קופונים פנויים</th><th>למשפחה</th><th>צבירה</th><th>סטטוס</th><th>הקלטה</th><th></th>
-        </tr></thead><tbody>${list.map(b => `<tr>
-          <td>${b.name}</td>
+        </tr></thead><tbody>${list.map(b => `<tr class="clickable" onclick="benefitDashboard(${b.id})">
+          <td><b>${b.name}</b></td>
           <td>${b.type === 'coupon' ? 'קופון' : 'הרשמה'}</td>
           <td>${b.total_stock === 0 ? '∞' : b.total_stock}</td>
           <td>${b.taken}</td>
@@ -186,12 +186,102 @@
           <td>${b.stackable ? 'כן' : 'לא'}</td>
           <td><span class="badge ${b.active ? 'badge-green' : 'badge-dim'}">${b.active ? 'פעיל' : 'כבוי'}</span></td>
           <td>${b.recording ? icon('check') : icon('x')}</td>
-          <td style="display:flex;gap:4px">
+          <td onclick="event.stopPropagation()" style="display:flex;gap:4px">
             ${b.type === 'coupon' ? `<button class="btn btn-ghost" style="padding:6px" onclick="couponsModal(${b.id},'${b.name.replace(/'/g,"")}')" title="קופונים">${icon('ticket')}</button>` : ''}
             <button class="btn btn-ghost" style="padding:6px" onclick="recordingModal(${b.id})" title="הקלטה">${icon('mic')}</button>
             <button class="btn btn-ghost" style="padding:6px" onclick="editBenefit(${b.id})" title="עריכה">${icon('pencil')}</button>
             <button class="btn btn-danger" onclick="delBenefit(${b.id})" title="מחיקה">${icon('trash-2')}</button>
           </td></tr>`).join('')}</tbody></table>`;
+      refresh();
+    };
+
+    // מיני-דשבורד להטבה
+    window.benefitDashboard = async (id) => {
+      const [benefits, registrations] = await Promise.all([
+        api('/benefits'),
+        api('/benefits/'+id+'/registrations')
+      ]);
+      const b = benefits.find(x => String(x.id) === String(id));
+      if (!b) return;
+
+      // סטטיסטיקות
+      const totalReg = registrations.length;
+      const withCoupon = registrations.filter(r => r.coupon).length;
+      const uniqueSynagogues = new Set(registrations.map(r => r.synagogue).filter(Boolean));
+      const bySynagogue = {};
+      registrations.forEach(r => {
+        const s = r.synagogue || 'ללא בית כנסת';
+        bySynagogue[s] = (bySynagogue[s] || 0) + 1;
+      });
+      const synagogueList = Object.entries(bySynagogue).sort((a,b) => b[1] - a[1]);
+      const stockLeft = b.total_stock === 0 ? '∞' : (b.total_stock - totalReg);
+
+      modalRoot.innerHTML = `<div class="modal-bg" onclick="if(event.target===this)closeModal()">
+        <div class="modal wide" style="width:720px">
+          <h3 style="display:flex;align-items:center;gap:10px;justify-content:space-between">
+            <span style="display:flex;align-items:center;gap:10px">${icon('gift')} ${b.name}</span>
+            <span class="badge ${b.active?'badge-green':'badge-dim'}">${b.active?'פעיל':'כבוי'}</span>
+          </h3>
+
+          <div class="stat-grid" style="grid-template-columns:repeat(4,1fr)">
+            <div class="stat">
+              <div class="num">${totalReg}</div>
+              <div class="lbl">סה"כ הזמנות</div>
+            </div>
+            <div class="stat">
+              <div class="num">${stockLeft}</div>
+              <div class="lbl">נותרו במלאי</div>
+            </div>
+            <div class="stat">
+              <div class="num">${b.per_family}</div>
+              <div class="lbl">מגבלה למשפחה</div>
+            </div>
+            <div class="stat">
+              <div class="num">${uniqueSynagogues.size}</div>
+              <div class="lbl">בתי כנסת</div>
+            </div>
+          </div>
+
+          ${b.type === 'coupon' ? `
+          <div class="stat-grid" style="grid-template-columns:repeat(2,1fr)">
+            <div class="stat">
+              <div class="num" style="color:var(--accent-dim)">${b.coupons_free}</div>
+              <div class="lbl">קופונים פנויים</div>
+            </div>
+            <div class="stat">
+              <div class="num" style="color:#2E7D32">${withCoupon}</div>
+              <div class="lbl">קופונים שהוקצו</div>
+            </div>
+          </div>` : ''}
+
+          ${synagogueList.length ? `
+          <div class="section-h">התפלגות לפי בית כנסת</div>
+          <div style="max-height:180px;overflow-y:auto">
+            <table><thead><tr><th>בית כנסת</th><th style="text-align:left">כמות</th></tr></thead>
+              <tbody>${synagogueList.map(([s, n]) => `<tr>
+                <td>${s}</td>
+                <td style="text-align:left"><b>${n}</b></td></tr>`).join('')}
+              </tbody></table>
+          </div>` : ''}
+
+          <div class="section-h">מי הזמין (${totalReg})</div>
+          <div style="max-height:280px;overflow-y:auto">
+            ${totalReg ? `<table><thead><tr><th>שם</th><th>טלפון</th><th>בית כנסת</th>${b.type==='coupon'?'<th>קופון</th>':''}<th>תאריך</th></tr></thead>
+              <tbody>${registrations.map(r => `<tr>
+                <td>${r.contact_id ? `<span class="link" onclick="closeModal();cardModal(${r.contact_id})">${r.name||'—'}</span>` : (r.name||'—')}</td>
+                <td>${r.phone||'—'}</td>
+                <td>${r.synagogue||'—'}</td>
+                ${b.type==='coupon' ? `<td>${r.coupon?`<b>${r.coupon}</b>`:'—'}</td>` : ''}
+                <td>${fmtDate(r.created_at)}</td></tr>`).join('')}
+              </tbody></table>` : '<div class="empty">אין הזמנות עדיין</div>'}
+          </div>
+
+          <div class="row" style="margin-top:20px;gap:8px">
+            <button class="btn btn-ghost" onclick="closeModal()">סגירה</button>
+            <button class="btn btn-ghost" onclick="closeModal();editBenefit(${b.id})">${icon('pencil')} עריכה</button>
+            ${b.type==='coupon'?`<button class="btn btn-ghost" onclick="closeModal();couponsModal(${b.id},'${b.name.replace(/'/g,'')}')">${icon('ticket')} ניהול קופונים</button>`:''}
+          </div>
+        </div></div>`;
       refresh();
     };
 
@@ -335,7 +425,11 @@
       selectedContacts.clear();
       main.innerHTML = `<div class="page-title">${icon('users')} לקוחות מורשים</div>
         <div class="toolbar">
-          <div style="display:flex;gap:8px">
+          <div style="display:flex;gap:10px;align-items:center;flex:1">
+            <div style="position:relative;max-width:340px;flex:1">
+              <input id="contactSearch" placeholder="חיפוש שם, טלפון, בית כנסת..." style="padding-right:38px" oninput="filterContacts(this.value)">
+              <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--text-dim);pointer-events:none;display:flex">${icon('search')}</span>
+            </div>
             <button class="btn btn-danger hidden" id="btnDeleteSelected" onclick="deleteSelected()">${icon('trash-2')} מחק נבחרים (<span id="selectedCount">0</span>)</button>
           </div>
           <div style="display:flex;gap:8px">
@@ -350,10 +444,22 @@
       await loadContacts();
     };
 
-    async function loadContacts() {
-      const list = await api('/contacts');
+    window.filterContacts = (term) => {
+      const t = term.trim().toLowerCase();
+      const list = window._contactsList || [];
+      const filtered = !t ? list : list.filter(c =>
+        (c.phone||'').toLowerCase().includes(t) ||
+        (c.phone2||'').toLowerCase().includes(t) ||
+        (c.phone3||'').toLowerCase().includes(t) ||
+        (c.name||'').toLowerCase().includes(t) ||
+        (c.synagogue||'').toLowerCase().includes(t)
+      );
+      renderContactsTable(filtered);
+    };
+
+    function renderContactsTable(list) {
       const el = document.getElementById('contactsList');
-      if (!list.length) { el.className='empty'; el.textContent='אין לקוחות עדיין'; return; }
+      if (!list.length) { el.className='empty'; el.textContent='לא נמצאו לקוחות'; return; }
       el.className='';
       el.innerHTML = `<table><thead><tr>
         <th><input type="checkbox" id="chkAll" onchange="toggleAll(this)"></th>
@@ -370,8 +476,12 @@
           </td></tr>`).join('')}
         </tbody></table>`;
       refresh();
-      // שמירת הרשימה לייצוא
+    }
+
+    async function loadContacts() {
+      const list = await api('/contacts');
       window._contactsList = list;
+      renderContactsTable(list);
     }
 
     window.toggleAll = (chk) => {
@@ -554,13 +664,19 @@
       const synagogues = [...new Set(currentReg.map(r=>r.synagogue).filter(Boolean))].sort();
       main.innerHTML = `<div class="page-title">
           <span class="link" onclick="pages.report()">דוחות</span> ${icon('chevron-left')} ${name}</div>
-        <div class="filter-bar">
-          <label style="color:var(--text-dim)">${icon('filter')} סינון בית כנסת:</label>
-          <select id="synFilter" onchange="renderReg()">
-            <option value="">הכל</option>
-            ${synagogues.map(s=>`<option value="${s}">${s}</option>`).join('')}
-          </select>
-          <span id="regCount" style="color:var(--text-dim)"></span>
+        <div class="filter-bar" style="gap:16px;flex-wrap:wrap">
+          <div style="position:relative;flex:1;max-width:340px">
+            <input id="regSearch" placeholder="חיפוש שם, טלפון, בית כנסת..." style="padding-right:38px" oninput="renderReg()">
+            <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--text-dim);pointer-events:none;display:flex">${icon('search')}</span>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <label style="color:var(--text-dim);white-space:nowrap">${icon('filter')} בית כנסת:</label>
+            <select id="synFilter" onchange="renderReg()" style="width:auto;min-width:160px">
+              <option value="">הכל</option>
+              ${synagogues.map(s=>`<option value="${s}">${s}</option>`).join('')}
+            </select>
+          </div>
+          <span id="regCount" style="color:var(--text-dim);margin-right:auto"></span>
         </div>
         <div class="card"><div id="regList"></div></div>`;
       refresh();
@@ -568,8 +684,14 @@
     };
     window.renderReg = () => {
       const filter = document.getElementById('synFilter').value;
-      const rows = filter ? currentReg.filter(r=>r.synagogue===filter) : currentReg;
-      document.getElementById('regCount').textContent = `(${rows.length} רשומים)`;
+      const term = (document.getElementById('regSearch')?.value||'').trim().toLowerCase();
+      let rows = filter ? currentReg.filter(r=>r.synagogue===filter) : currentReg;
+      if (term) rows = rows.filter(r =>
+        (r.phone||'').toLowerCase().includes(term) ||
+        (r.name||'').toLowerCase().includes(term) ||
+        (r.synagogue||'').toLowerCase().includes(term)
+      );
+      document.getElementById('regCount').textContent = `${rows.length} רשומים`;
       const el = document.getElementById('regList');
       if (!rows.length) { el.className='empty'; el.textContent='אין רשומים'; refresh(); return; }
       el.className='';
