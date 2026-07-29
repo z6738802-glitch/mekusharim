@@ -43,6 +43,33 @@
     td { font-size: 14px; }
     tbody tr { transition: background .15s; }
     tbody tr:hover { background: rgba(155,114,38,0.04); }
+
+    /* file input - עיצוב מותאם */
+    input[type="file"] {
+      padding: 0;
+      cursor: pointer;
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+    }
+    input[type="file"]::file-selector-button {
+      background: linear-gradient(135deg, var(--accent), var(--gold-light));
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-family: 'Heebo', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      margin-left: 12px;
+      transition: transform .15s, box-shadow .15s;
+      box-shadow: 0 3px 10px rgba(155,114,38,0.2);
+    }
+    input[type="file"]::file-selector-button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 5px 14px rgba(155,114,38,0.35);
+    }
     tr.clickable { cursor: pointer; }
     tr.clickable:hover td { background: var(--surface-2); }
     .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 8px; border: none; cursor: pointer; font-family: inherit; font-size: 14px; font-weight: 500; transition: all .15s; }
