@@ -9,22 +9,34 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     :root {
-      --bg: #0f1419; --surface: #1a1f2e; --surface-2: #232838; --border: #2d3444;
-      --text: #e8eaed; --text-dim: #9aa0a9; --accent: #4f8cff; --accent-dim: #2d4a7c;
-      --green: #34c77b; --red: #ef5350; --amber: #f5a623; --radius: 10px;
+      --bg: #FFF9EF;
+      --surface: #FFFFFF;
+      --surface-2: #FDF3DE;
+      --border: rgba(184,128,28,0.15);
+      --text: #3A2A1A;
+      --text-dim: #7A6852;
+      --accent: #E5A93A;
+      --accent-dim: #B8801C;
+      --green: #4CAF50;
+      --red: #E57373;
+      --amber: #F5B840;
+      --radius: 12px;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { direction: rtl; text-align: right; font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.6; }
+    html, body { direction: rtl; text-align: right; font-family: 'Heebo', sans-serif; background: var(--bg);
+      background-image: linear-gradient(135deg, #FFF9EF 0%, #FFE9C7 100%);
+      background-attachment: fixed;
+      color: var(--text); font-size: 15px; line-height: 1.6; }
     .layout { display: flex; min-height: 100vh; }
-    .sidebar { width: 220px; background: var(--surface); border-left: 1px solid var(--border); padding: 24px 0; flex-shrink: 0; }
-    .brand { padding: 0 24px 24px; font-weight: 700; font-size: 20px; color: var(--accent); }
+    .sidebar { width: 220px; background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); border-left: 1px solid var(--border); padding: 24px 0; flex-shrink: 0; box-shadow: 0 4px 20px rgba(184,128,28,0.05); }
+    .brand { padding: 0 24px 24px; font-weight: 900; font-size: 22px; color: var(--accent-dim); }
     .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 24px; cursor: pointer; color: var(--text-dim); transition: all .15s; border: none; background: none; width: 100%; text-align: right; font-family: inherit; font-size: 15px; }
     .nav-item:hover { background: var(--surface-2); color: var(--text); }
-    .nav-item.active { background: var(--accent-dim); color: var(--text); border-right: 3px solid var(--accent); }
+    .nav-item.active { background: rgba(229,169,58,0.15); color: var(--accent-dim); border-right: 3px solid var(--accent); font-weight: 700; }
     .nav-item svg { width: 18px; height: 18px; }
     .main { flex: 1; padding: 32px; overflow-y: auto; }
     .page-title { font-size: 24px; font-weight: 700; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; box-shadow: 0 6px 20px rgba(184,128,28,0.06); }
     table { width: 100%; border-collapse: collapse; }
     th, td { padding: 12px; text-align: right; border-bottom: 1px solid var(--border); }
     th { color: var(--text-dim); font-weight: 500; font-size: 13px; }
@@ -33,26 +45,26 @@
     tr.clickable:hover td { background: var(--surface-2); }
     .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 8px; border: none; cursor: pointer; font-family: inherit; font-size: 14px; font-weight: 500; transition: all .15s; }
     .btn svg { width: 16px; height: 16px; }
-    .btn-primary { background: var(--accent); color: white; }
-    .btn-primary:hover { background: #3d7aef; }
-    .btn-ghost { background: var(--surface-2); color: var(--text); }
-    .btn-danger { background: transparent; color: var(--red); padding: 6px; }
-    .btn-danger:hover { background: rgba(239,83,80,.1); }
-    .link { color: var(--accent); cursor: pointer; text-decoration: none; }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), #F5C560); color: white; font-weight: 700; box-shadow: 0 3px 12px rgba(229,169,58,0.3); }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(229,169,58,0.45); }
+    .btn-ghost { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+    .btn-danger { background: transparent; color: #C62828; padding: 6px; }
+    .btn-danger:hover { background: rgba(229,115,115,.1); }
+    .link { color: var(--accent-dim); cursor: pointer; text-decoration: none; font-weight: 500; }
     .link:hover { text-decoration: underline; }
-    input, select, textarea { background: var(--surface-2); border: 1px solid var(--border); color: var(--text); padding: 10px 12px; border-radius: 8px; font-family: inherit; font-size: 14px; width: 100%; }
+    input, select, textarea { background: white; border: 1px solid var(--border); color: var(--text); padding: 10px 12px; border-radius: 8px; font-family: inherit; font-size: 14px; width: 100%; transition: border-color .15s; }
     input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
     .field { margin-bottom: 14px; }
     .field label { display: block; margin-bottom: 6px; color: var(--text-dim); font-size: 13px; }
     .row { display: flex; gap: 12px; }
     .row > * { flex: 1; }
     .badge { padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
-    .badge-green { background: rgba(52,199,123,.15); color: var(--green); }
-    .badge-amber { background: rgba(245,166,35,.15); color: var(--amber); }
+    .badge-green { background: rgba(76,175,80,.15); color: #2E7D32; }
+    .badge-amber { background: rgba(245,184,64,.2); color: var(--accent-dim); }
     .badge-dim { background: var(--surface-2); color: var(--text-dim); }
     .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 12px; flex-wrap: wrap; }
     .hidden { display: none; }
-    .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: flex; align-items: center; justify-content: center; z-index: 100; }
+    .modal-bg { position: fixed; inset: 0; background: rgba(58,42,26,.5); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 100; }
     .modal { background: var(--surface); border-radius: var(--radius); padding: 24px; width: 440px; max-width: 90vw; max-height: 88vh; overflow-y: auto; }
     .modal.wide { width: 640px; }
     .modal h3 { margin-bottom: 18px; }
@@ -60,7 +72,7 @@
     .checkbox-row input { width: auto; }
     .empty { text-align: center; color: var(--text-dim); padding: 40px; }
     .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
-    .stat { background: var(--surface-2); border-radius: 8px; padding: 14px; }
+    .stat { background: var(--surface-2); border-radius: 10px; padding: 14px; border: 1px solid var(--border); }
     .stat .num { font-size: 24px; font-weight: 700; }
     .stat .lbl { color: var(--text-dim); font-size: 13px; }
     .section-h { font-size: 16px; font-weight: 700; margin: 20px 0 12px; }
@@ -167,10 +179,10 @@
             <div class="field"><label>מגבלה למשפחה</label><input id="bFamily" type="number" value="${b.per_family??1}"></div>
           </div>
           <div class="row">
-            <div class="row">
             <div class="field"><label>סדר בתפריט</label><input id="bSort" type="number" value="${b.sort_order??0}"></div>
             <div class="field"><label>מזהה קבוצה (ריק = עומד לבד)</label><input id="bGroup" type="number" value="${b.group_id??''}" placeholder="למשל 1 או 2"></div>
           </div>
+          <div class="row">
             <div class="field"><label>ניתן לצבור</label><select id="bStack">
               <option value="false" ${!b.stackable?'selected':''}>לא</option>
               <option value="true" ${b.stackable?'selected':''}>כן</option>
