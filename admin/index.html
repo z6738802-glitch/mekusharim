@@ -38,9 +38,11 @@
     .page-title { font-size: 24px; font-weight: 700; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; }
     .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 20px; box-shadow: 0 6px 20px rgba(184,128,28,0.06); }
     table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 12px; text-align: right; border-bottom: 1px solid var(--border); }
+    th, td { padding: 16px 14px; text-align: right; border-bottom: 1px solid var(--border); }
     th { color: var(--text-dim); font-weight: 500; font-size: 13px; }
     td { font-size: 14px; }
+    tbody tr { transition: background .15s; }
+    tbody tr:hover { background: rgba(155,114,38,0.04); }
     tr.clickable { cursor: pointer; }
     tr.clickable:hover td { background: var(--surface-2); }
     .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 8px; border: none; cursor: pointer; font-family: inherit; font-size: 14px; font-weight: 500; transition: all .15s; }
@@ -160,10 +162,17 @@
           <td style="display:flex;gap:4px">
             ${b.type === 'coupon' ? `<button class="btn btn-ghost" style="padding:6px" onclick="couponsModal(${b.id},'${b.name.replace(/'/g,"")}')" title="קופונים">${icon('ticket')}</button>` : ''}
             <button class="btn btn-ghost" style="padding:6px" onclick="recordingModal(${b.id})" title="הקלטה">${icon('mic')}</button>
-            <button class="btn btn-ghost" style="padding:6px" onclick='benefitModal(${JSON.stringify(b)})' title="עריכה">${icon('pencil')}</button>
+            <button class="btn btn-ghost" style="padding:6px" onclick="editBenefit(${b.id})" title="עריכה">${icon('pencil')}</button>
             <button class="btn btn-danger" onclick="delBenefit(${b.id})" title="מחיקה">${icon('trash-2')}</button>
           </td></tr>`).join('')}</tbody></table>`;
       refresh();
+    };
+
+    // טוען הטבה מחדש מהשרת (מונע בעיות אסקייפ)
+    window.editBenefit = async (id) => {
+      const list = await api('/benefits');
+      const b = list.find(x => String(x.id) === String(id));
+      if (b) benefitModal(b);
     };
 
     window.benefitModal = (b = {}) => {
