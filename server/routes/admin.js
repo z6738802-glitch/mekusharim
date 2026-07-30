@@ -287,7 +287,51 @@ router.get('/benefits/:id/registrations', async (req, res) => {
 });
 
 
-// ════════════ דוחות ════════════
+// ════════════ דשבורד ════════════
+router.get('/dashboard', async (req, res) => {
+  const [
+    contactsCount,
+    benefitsStats,
+    todayOrders,
+    topSynagogues,
+    recentOrders
+  ] = await Promise.all([
+    query(`select count(*)::int as n from contacts`),
+    query(`select b.id, b.name, b.type, b.total_stock, b.per_family, b.active,
+             count(s.id)::int as taken,
+             (select count(*)::int from coupons c where c.benefit_id=b.id) as total_coupons,
+             (select count(*)::int from coupons c where c.benefit_id=b.id and c.phone is null) as free_coupons
+           from benefits b left join selections s on s.benefit_id=b.id
+           group by b.id order by b.sort_order, b.id`),
+    query(`select count(*)::int as n from selections where created_at >= current_date`),
+    query(`select coalesce(c.synagogue, 'ללא בית כנסת') as synagogue, count(distinct s.phone)::int as n
+             from selections s left join contacts c on c.phone=s.phone
+             group by c.synagogue order by n desc limit 8`),
+    query(`select s.id, s.created_at, s.phone, b.name as benefit_name, b.type,
+             c.name as contact_name, c.synagogue
+             from selections s
+             join benefits b on b.id=s.benefit_id
+             left join contacts c on c.phone=s.phone
+             order by s.created_at desc limit 10`)
+  ]);
+
+  const totalOrders = benefitsStats.rows.reduce((s, b) => s + b.taken, 0);
+  const activeBenefits = benefitsStats.rows.filter(b => b.active).length;
+  const totalCoupons = benefitsStats.rows.reduce((s, b) => s + b.total_coupons, 0);
+  const freeCoupons = benefitsStats.rows.reduce((s, b) => s + b.free_coupons, 0);
+
+  res.json({
+    contactsCount: contactsCount.rows[0].n,
+    totalOrders,
+    todayOrders: todayOrders.rows[0].n,
+    activeBenefits,
+    totalCoupons,
+    freeCoupons,
+    benefits: benefitsStats.rows,
+    topSynagogues: topSynagogues.rows,
+    recentOrders: recentOrders.rows,
+  });
+});
 router.get('/report', async (req, res) => {
   const { rows } = await query(
     `select b.id, b.name, b.type, b.total_stock,

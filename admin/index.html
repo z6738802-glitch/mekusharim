@@ -117,7 +117,8 @@
     <aside class="sidebar">
       <div class="brand">מקושרים</div>
       <nav id="nav">
-        <button class="nav-item active" data-page="benefits"><i data-lucide="gift"></i> הטבות</button>
+        <button class="nav-item active" data-page="dashboard"><i data-lucide="layout-dashboard"></i> דשבורד</button>
+        <button class="nav-item" data-page="benefits"><i data-lucide="gift"></i> הטבות</button>
         <button class="nav-item" data-page="contacts"><i data-lucide="users"></i> לקוחות</button>
         <button class="nav-item" data-page="report"><i data-lucide="bar-chart-3"></i> דוחות</button>
       </nav>
@@ -163,7 +164,106 @@
     function closeModal() { modalRoot.innerHTML = ''; }
     function fmtDate(s) { if (!s) return '—'; const d = new Date(s); return d.toLocaleDateString('he-IL') + ' ' + d.toLocaleTimeString('he-IL', {hour:'2-digit',minute:'2-digit'}); }
 
-    // ═══════════ הטבות ═══════════
+    // ═══════════ דשבורד ═══════════
+    pages.dashboard = async () => {
+      main.innerHTML = `<div class="page-title">${icon('layout-dashboard')} דשבורד</div>
+        <div id="dashContent" class="empty">טוען...</div>`;
+      refresh();
+      const d = await api('/dashboard');
+
+      const totalStockCoupon = d.benefits.filter(b=>b.type==='coupon').reduce((s,b)=>s+(b.total_stock||0), 0);
+
+      main.innerHTML = `<div class="page-title">${icon('layout-dashboard')} דשבורד</div>
+
+        <div class="stat-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-bottom:24px">
+          <div class="stat" style="border-right:3px solid var(--accent)">
+            <div class="num">${d.contactsCount.toLocaleString('he-IL')}</div>
+            <div class="lbl">${icon('users')} לקוחות</div>
+          </div>
+          <div class="stat" style="border-right:3px solid #2E7D32">
+            <div class="num">${d.totalOrders.toLocaleString('he-IL')}</div>
+            <div class="lbl">${icon('check-circle')} הזמנות</div>
+          </div>
+          <div class="stat" style="border-right:3px solid var(--accent-dim)">
+            <div class="num">${d.todayOrders}</div>
+            <div class="lbl">${icon('trending-up')} היום</div>
+          </div>
+          <div class="stat" style="border-right:3px solid #B8801C">
+            <div class="num">${d.activeBenefits}</div>
+            <div class="lbl">${icon('gift')} הטבות פעילות</div>
+          </div>
+          ${totalCouponsBar(d)}
+        </div>
+
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:20px">
+          <!-- הטבות -->
+          <div class="card">
+            <h3 style="margin-bottom:14px;font-size:15px;color:var(--text-dim);font-weight:600">התפלגות הזמנות לפי הטבה</h3>
+            ${d.benefits.length ? d.benefits.map(b => renderBenefitBar(b, d)).join('') : '<div class="empty">אין הטבות</div>'}
+          </div>
+
+          <!-- בתי כנסת -->
+          <div class="card">
+            <h3 style="margin-bottom:14px;font-size:15px;color:var(--text-dim);font-weight:600">בתי כנסת פעילים</h3>
+            ${d.topSynagogues.length ? d.topSynagogues.map(s => `
+              <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="jumpToSynagogueFilter('${s.synagogue.replace(/'/g,'')}')">
+                <span>${s.synagogue}</span>
+                <b>${s.n}</b>
+              </div>`).join('') : '<div class="empty">אין נתונים</div>'}
+          </div>
+        </div>
+
+        <!-- הזמנות אחרונות -->
+        <div class="card">
+          <h3 style="margin-bottom:14px;font-size:15px;color:var(--text-dim);font-weight:600">${icon('clock')} הזמנות אחרונות</h3>
+          ${d.recentOrders.length ? `<table>
+            <thead><tr><th>הטבה</th><th>לקוח</th><th>בית כנסת</th><th>זמן</th></tr></thead>
+            <tbody>${d.recentOrders.map(o => `<tr>
+              <td>${o.benefit_name}</td>
+              <td>${o.contact_name||o.phone}</td>
+              <td>${o.synagogue||'—'}</td>
+              <td style="color:var(--text-dim);font-size:13px">${fmtDate(o.created_at)}</td>
+            </tr>`).join('')}</tbody>
+          </table>` : '<div class="empty">אין הזמנות עדיין</div>'}
+        </div>`;
+      refresh();
+    };
+
+    function totalCouponsBar(d) {
+      if (!d.totalCoupons) return '';
+      const used = d.totalCoupons - d.freeCoupons;
+      const pct = Math.round((used / d.totalCoupons) * 100);
+      return `<div class="stat" style="border-right:3px solid #F5B840">
+        <div class="num">${d.freeCoupons}/${d.totalCoupons}</div>
+        <div class="lbl">${icon('ticket')} קופונים פנויים</div>
+      </div>`;
+    }
+
+    function renderBenefitBar(b, d) {
+      const max = b.total_stock || Math.max(b.taken, 1);
+      const pct = b.total_stock ? Math.round((b.taken / b.total_stock) * 100) : 100;
+      const isCoupon = b.type === 'coupon';
+      return `<div style="margin-bottom:14px;cursor:pointer" onclick="benefitDashboard(${b.id})">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <span style="font-weight:600">${b.name}${!b.active?' <span class="badge badge-dim" style="margin-right:6px">כבוי</span>':''}</span>
+          <span style="color:var(--text-dim);font-size:13px">
+            ${b.taken}${b.total_stock ? ' / '+b.total_stock : ''} 
+            ${isCoupon ? `<span style="margin-right:6px">•</span> ${b.free_coupons} פנויים` : ''}
+          </span>
+        </div>
+        <div style="height:8px;background:var(--surface-2);border-radius:4px;overflow:hidden">
+          <div style="height:100%;background:linear-gradient(90deg,var(--accent),var(--gold-light));width:${pct}%;transition:width .5s"></div>
+        </div>
+      </div>`;
+    }
+
+    // ניווט לדוח עם סינון בית כנסת מוקדם
+    window.jumpToSynagogueFilter = async (syn) => {
+      // נכנס לדף דוחות ואז לפילטר
+      window._syn_prefilter = syn;
+      document.querySelector('[data-page="report"]').click();
+    };
+
     pages.benefits = async () => {
       main.innerHTML = `<div class="page-title">${icon('gift')} הטבות</div>
         <div class="toolbar"><span></span>
@@ -772,7 +872,7 @@
       refresh();
     };
 
-    pages.benefits();
+    pages.dashboard();
   </script>
 </body>
 </html>
