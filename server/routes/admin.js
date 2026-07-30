@@ -343,4 +343,56 @@ router.get('/report', async (req, res) => {
   res.json(rows);
 });
 
+// ════════════ לוגים ל-IVR ════════════
+router.get('/logs/calls', async (req, res) => {
+  const search = req.query.search || '';
+  const status = req.query.status || '';
+  const limit = parseInt(req.query.limit, 10) || 100;
+
+  let where = 'where 1=1';
+  const params = [];
+  if (search) {
+    params.push('%' + search + '%');
+    where += ` and (phone ilike $${params.length} or call_id ilike $${params.length})`;
+  }
+
+  const { rows } = await query(
+    `select call_id, phone, min(created_at) as started, max(created_at) as ended,
+       count(*)::int as steps,
+       max(case when status='error' then 1 else 0 end)::int as has_error,
+       max(case when status='error' then error_msg end) as error_msg
+     from ivr_logs
+     ${where}
+     group by call_id, phone
+     order by started desc
+     limit ${limit}`,
+    params
+  );
+
+  let filtered = rows;
+  if (status === 'error') filtered = rows.filter(r => r.has_error);
+  else if (status === 'ok') filtered = rows.filter(r => !r.has_error);
+
+  res.json(filtered);
+});
+
+router.get('/logs/call/:callId', async (req, res) => {
+  const { rows } = await query(
+    `select id, step, step_name, params, response, status, error_msg, duration_ms, created_at
+       from ivr_logs
+      where call_id = $1
+      order by step`,
+    [req.params.callId]
+  );
+  res.json(rows);
+});
+
+router.delete('/logs/cleanup', async (req, res) => {
+  const days = parseInt(req.query.days, 10) || 30;
+  const { rowCount } = await query(
+    `delete from ivr_logs where created_at < now() - interval '${days} days'`
+  );
+  res.json({ deleted: rowCount });
+});
+
 export default router;

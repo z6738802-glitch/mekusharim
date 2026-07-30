@@ -54,6 +54,23 @@ alter table mekusharim.selections add column if not exists recording_path text;
 alter table mekusharim.benefits add column if not exists group_id integer;
 alter table mekusharim.contacts add column if not exists phone2 text;
 alter table mekusharim.contacts add column if not exists phone3 text;
+
+-- טבלת לוגים ל-IVR
+create table if not exists mekusharim.ivr_logs (
+  id           bigserial primary key,
+  call_id      text,
+  phone        text,
+  step         integer,
+  step_name    text,
+  params       jsonb,
+  response     text,
+  status       text,
+  error_msg    text,
+  duration_ms  integer,
+  created_at   timestamptz default now()
+);
+create index if not exists idx_ivr_logs_call on mekusharim.ivr_logs(call_id, step);
+create index if not exists idx_ivr_logs_time on mekusharim.ivr_logs(created_at desc);
 `;
 
 export async function initDb() {

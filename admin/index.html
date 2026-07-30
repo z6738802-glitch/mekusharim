@@ -121,6 +121,7 @@
         <button class="nav-item" data-page="benefits"><i data-lucide="gift"></i> הטבות</button>
         <button class="nav-item" data-page="contacts"><i data-lucide="users"></i> לקוחות</button>
         <button class="nav-item" data-page="report"><i data-lucide="bar-chart-3"></i> דוחות</button>
+        <button class="nav-item" data-page="logs"><i data-lucide="activity"></i> לוגים</button>
       </nav>
     </aside>
     <main class="main" id="main"></main>
@@ -163,6 +164,122 @@
     function refresh() { lucide.createIcons(); }
     function closeModal() { modalRoot.innerHTML = ''; }
     function fmtDate(s) { if (!s) return '—'; const d = new Date(s); return d.toLocaleDateString('he-IL') + ' ' + d.toLocaleTimeString('he-IL', {hour:'2-digit',minute:'2-digit'}); }
+
+    // ═══════════ לוגים ═══════════
+    const STEP_LABELS = {
+      menu: 'תפריט הטבות',
+      benefit_selected: 'בחירת הטבה',
+      coupon_warned: 'אזהרת קופון',
+      quantity: 'הזנת כמות',
+      record_done: 'הקלטת ת"ז',
+      switch_action: 'החלפת הטבה',
+      delete_action: 'מחיקה',
+      confirm_delete: 'אישור מחיקה',
+      coupon_action: 'פעולת קופון',
+      replay: 'שמיעה חוזרת',
+    };
+
+    pages.logs = async () => {
+      main.innerHTML = `<div class="page-title">${icon('activity')} לוגי IVR</div>
+        <div class="toolbar">
+          <div style="display:flex;gap:10px;align-items:center;flex:1">
+            <div style="position:relative;max-width:280px;flex:1">
+              <input id="logSearch" placeholder="חיפוש טלפון או Call ID..." style="padding-right:38px" oninput="loadLogs()">
+              <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--text-dim);pointer-events:none;display:flex">${icon('search')}</span>
+            </div>
+            <select id="logStatus" onchange="loadLogs()" style="width:auto;min-width:140px">
+              <option value="">כל הסטטוסים</option>
+              <option value="ok">הצליחו</option>
+              <option value="error">שגיאות</option>
+            </select>
+          </div>
+          <button class="btn btn-ghost" onclick="loadLogs()">${icon('refresh-cw')} רענון</button>
+        </div>
+        <div class="card"><div id="logsList" class="empty">טוען...</div></div>`;
+      refresh();
+      loadLogs();
+    };
+
+    window.loadLogs = async () => {
+      const search = document.getElementById('logSearch')?.value || '';
+      const status = document.getElementById('logStatus')?.value || '';
+      const qs = new URLSearchParams({ search, status }).toString();
+      const list = await api('/logs/calls?' + qs);
+      const el = document.getElementById('logsList');
+      if (!list.length) { el.className='empty'; el.textContent='אין שיחות'; return; }
+      el.className='';
+      el.innerHTML = `<table>
+        <thead><tr><th>סטטוס</th><th>טלפון</th><th>שלבים</th><th>התחלה</th><th>Call ID</th><th></th></tr></thead>
+        <tbody>${list.map(c => `<tr class="clickable" onclick="showCallFlow('${c.call_id}','${c.phone||''}')">
+          <td>${c.has_error 
+            ? '<span class="badge" style="background:rgba(198,40,40,.15);color:#C62828">שגיאה</span>'
+            : '<span class="badge badge-green">הצליחה</span>'}</td>
+          <td><b>${c.phone||'—'}</b></td>
+          <td>${c.steps}</td>
+          <td style="color:var(--text-dim);font-size:13px">${fmtDate(c.started)}</td>
+          <td style="color:var(--text-dim);font-size:12px;font-family:monospace">${(c.call_id||'').substring(0,16)}...</td>
+          <td>${icon('chevron-left')}</td>
+        </tr>`).join('')}</tbody>
+      </table>`;
+      refresh();
+    };
+
+    window.showCallFlow = async (callId, phone) => {
+      const steps = await api('/logs/call/' + encodeURIComponent(callId));
+      if (!steps.length) return;
+
+      modalRoot.innerHTML = `<div class="modal-bg" onclick="if(event.target===this)closeModal()">
+        <div class="modal wide" style="width:820px;max-height:88vh;overflow-y:auto">
+          <h3 style="display:flex;justify-content:space-between;align-items:center">
+            <span style="display:flex;align-items:center;gap:10px">${icon('activity')} דיאגרמת שיחה</span>
+            <span style="font-size:14px;font-weight:400;color:var(--text-dim)">${phone}</span>
+          </h3>
+
+          <div style="display:flex;flex-direction:column;gap:0;margin-top:16px">
+            ${steps.map((s, i) => renderStep(s, i, steps.length)).join('')}
+          </div>
+
+          <div class="row" style="margin-top:16px">
+            <button class="btn btn-ghost" onclick="closeModal()">סגירה</button>
+          </div>
+        </div></div>`;
+      refresh();
+    };
+
+    function renderStep(s, idx, total) {
+      const isLast = idx === total - 1;
+      const isError = s.status === 'error';
+      const color = isError ? '#C62828' : '#2E7D32';
+      const bg = isError ? 'rgba(198,40,40,.08)' : 'rgba(76,175,80,.08)';
+      const border = isError ? '#C62828' : '#4CAF50';
+      const label = STEP_LABELS[s.step_name] || s.step_name;
+
+      const params = { ...s.params };
+      delete params.ApiCallId; delete params.ApiExtension; delete params.ApiTime;
+      delete params.ApiDID; delete params.ApiRealDID; delete params.ApiYFCallId;
+      const paramsShort = Object.entries(params)
+        .filter(([k,v]) => v && v !== 'None' && !k.startsWith('Api'))
+        .map(([k,v]) => `${k}=${v}`)
+        .join(', ');
+
+      return `<div style="display:flex;gap:14px;align-items:stretch">
+        <div style="display:flex;flex-direction:column;align-items:center;width:28px;flex-shrink:0">
+          <div style="width:28px;height:28px;border-radius:50%;background:${bg};border:2px solid ${border};color:${color};display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px">${s.step}</div>
+          ${!isLast ? `<div style="width:2px;flex:1;background:${border};opacity:.3;min-height:16px"></div>` : ''}
+        </div>
+
+        <div style="flex:1;background:${bg};border:1px solid ${border}40;border-radius:10px;padding:12px 16px;margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <b style="color:${color}">${label}</b>
+            <span style="color:var(--text-dim);font-size:12px">${s.duration_ms}ms</span>
+          </div>
+          ${paramsShort ? `<div style="font-size:13px;color:var(--text-dim);margin-bottom:4px"><b>קלט:</b> ${paramsShort}</div>` : ''}
+          <div style="font-size:12px;color:var(--text-dim);font-family:monospace;background:rgba(255,255,255,.5);padding:6px 8px;border-radius:6px;margin-top:6px;word-break:break-all;max-height:80px;overflow-y:auto">${(s.response||'').substring(0, 300)}${(s.response||'').length > 300 ? '...' : ''}</div>
+          ${s.error_msg ? `<div style="color:#C62828;font-size:13px;margin-top:6px">${icon('alert-circle')} ${s.error_msg}</div>` : ''}
+          <div style="font-size:11px;color:var(--text-dim);margin-top:4px">${fmtDate(s.created_at)}</div>
+        </div>
+      </div>`;
+    }
 
     // ═══════════ דשבורד ═══════════
     pages.dashboard = async () => {

@@ -3,6 +3,7 @@ import 'dotenv/config';
 import ivrRouter from './routes/ivr.js';
 import adminRouter from './routes/admin.js';
 import customerRouter from './routes/customer.js';
+import { ivrLogger } from './services/logger.js';
 import { initDb } from './db/init.js';
 
 const app = express();
@@ -19,8 +20,8 @@ app.use((req, res, next) => {
 // בריאות
 app.get('/health', (req, res) => res.json({ ok: true, service: 'mekusharim' }));
 
-// שלוחת ה-IVR (ימות פונה לכאן)
-app.use('/ivr', ivrRouter);
+// שלוחת ה-IVR (ימות פונה לכאן) — עם לוגר
+app.use('/ivr', ivrLogger, ivrRouter);
 
 // ניהול
 app.use('/admin', adminRouter);
