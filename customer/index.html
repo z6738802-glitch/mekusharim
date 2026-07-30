@@ -227,6 +227,8 @@
       } catch(e) {
         const msg = e.error === 'not_authorized' ? 'המספר אינו ברשימת הלקוחות המורשים' :
                     e.error === 'tzintuk_failed' ? 'לא הצלחנו לשלוח צינתוק, נסה שוב' :
+                    e.error === 'rate_limit_seconds' ? `נא להמתין ${e.waitSeconds} שניות לפני צינתוק נוסף` :
+                    e.error === 'rate_limit_hour' ? `הגעת למכסה. נסה שוב בעוד ${e.waitMinutes} דקות` :
                     'אירעה שגיאה, נסה שוב';
         document.getElementById('loginError').innerHTML = `<div class="error">${msg}</div>`;
         btn.innerHTML = `${icon('log-in')} המשך`;

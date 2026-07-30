@@ -7,9 +7,12 @@ const router = express.Router();
 
 // אחסון קודי אימות זמניים (בזיכרון, 10 דקות תוקף)
 const verifyCodes = new Map();
+// הגבלת קצב לצינתוקים (60 שניות בין צינתוקים, מקסימום 3 בשעה)
+const rateLimit = new Map();
 setInterval(() => {
   const now = Date.now();
   for (const [k, v] of verifyCodes) if (now - v.at > 10*60*1000) verifyCodes.delete(k);
+  for (const [k, v] of rateLimit) if (now - v.firstAt > 60*60*1000) rateLimit.delete(k);
 }, 60*1000);
 
 // ── שליחת קוד אימות בצינתוק ──
@@ -24,11 +27,27 @@ router.post('/verify/send', async (req, res) => {
   );
   if (!rows.length) return res.status(401).json({ error: 'not_authorized' });
 
-  // 2. יצירת קוד 4 ספרות
+  // 2. הגבלת קצב
+  const now = Date.now();
+  const rl = rateLimit.get(phone) || { count: 0, lastAt: 0, firstAt: now };
+  if (now - rl.firstAt > 60*60*1000) { rl.count = 0; rl.firstAt = now; } // חלון של שעה
+  if (rl.count >= 3) {
+    const waitMin = Math.ceil((60*60*1000 - (now - rl.firstAt)) / 60000);
+    return res.status(429).json({ error: 'rate_limit_hour', waitMinutes: waitMin });
+  }
+  if (rl.lastAt && now - rl.lastAt < 60*1000) {
+    const waitSec = Math.ceil((60*1000 - (now - rl.lastAt)) / 1000);
+    return res.status(429).json({ error: 'rate_limit_seconds', waitSeconds: waitSec });
+  }
+  rl.count++;
+  rl.lastAt = now;
+  rateLimit.set(phone, rl);
+
+  // 3. יצירת קוד 4 ספרות
   const code = String(Math.floor(1000 + Math.random() * 9000));
   verifyCodes.set(phone, { code, at: Date.now() });
 
-  // 3. הפעלת צינתוק דרך ימות
+  // 4. הפעלת צינתוק דרך ימות
   try {
     const params = new URLSearchParams({
       token: process.env.YEMOT_TOKEN,
@@ -38,13 +57,16 @@ router.post('/verify/send', async (req, res) => {
       phones: JSON.stringify([phone]),
     });
     const url = `https://www.call2all.co.il/ym/api/RunTzintuk?${params}`;
+    console.log('Tzintuk request:', { phone, code });
     const r = await fetch(url);
     const data = await r.json();
+    console.log('Tzintuk response:', data);
     if (data.responseStatus !== 'OK') {
       return res.status(500).json({ error: 'tzintuk_failed', details: data });
     }
-    res.json({ ok: true, message: 'צינתוק נשלח - הקש 4 ספרות אחרונות של המספר' });
+    res.json({ ok: true, message: 'צינתוק נשלח' });
   } catch (err) {
+    console.error('Tzintuk error:', err);
     res.status(500).json({ error: err.message });
   }
 });
