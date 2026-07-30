@@ -575,23 +575,70 @@
     window.importModal = () => {
       modalRoot.innerHTML = `<div class="modal-bg" onclick="if(event.target===this)closeModal()">
         <div class="modal"><h3>ייבוא לקוחות מאקסל</h3>
-          <p style="color:var(--text-dim);font-size:13px;margin-bottom:12px">קובץ אקסל עם עמודות: טלפון, שם, בית כנסת. הורד תבנית לדוגמה מהכפתור בעמוד הראשי.</p>
+          <p style="color:var(--text-dim);font-size:13px;margin-bottom:12px">קובץ אקסל עם עמודות: טלפון, טלפון נוסף, טלפון נוסף 2, שם, בית כנסת. הורד תבנית לדוגמה מהכפתור בעמוד הראשי.</p>
           <div class="field"><input id="importFile" type="file" accept=".xlsx,.xls,.csv"></div>
           <div id="importStatus"></div>
+          <div id="importProgress" style="display:none;margin-top:12px">
+            <div style="height:8px;background:var(--surface-2);border-radius:4px;overflow:hidden">
+              <div id="progressBar" style="height:100%;background:linear-gradient(90deg,var(--accent),var(--gold-light));width:0%;transition:width .3s"></div>
+            </div>
+            <div id="progressText" style="text-align:center;margin-top:8px;color:var(--text-dim);font-size:13px">מעלה קובץ...</div>
+          </div>
           <div class="row" style="margin-top:8px">
             <button class="btn btn-ghost" onclick="closeModal()">ביטול</button>
-            <button class="btn btn-primary" onclick="doImport()">${icon('upload')} ייבוא</button></div>
+            <button class="btn btn-primary" onclick="doImport()" id="importBtn">${icon('upload')} ייבוא</button></div>
         </div></div>`;
       refresh();
     };
     window.doImport = async () => {
       const f = document.getElementById('importFile').files[0];
       if (!f) return;
-      document.getElementById('importStatus').innerHTML = '<p style="color:var(--amber)">מייבא...</p>';
+
+      const btn = document.getElementById('importBtn');
+      btn.disabled = true;
+      document.getElementById('importStatus').innerHTML = '';
+      document.getElementById('importProgress').style.display = 'block';
+
+      const bar = document.getElementById('progressBar');
+      const text = document.getElementById('progressText');
+
+      // הדמיית התקדמות: העלאה → עיבוד → סיום
+      let progress = 0;
+      const interval = setInterval(() => {
+        if (progress < 90) {
+          progress += Math.random() * 8;
+          bar.style.width = Math.min(progress, 90) + '%';
+          text.textContent = progress < 30 ? 'מעלה קובץ...' :
+                             progress < 60 ? 'מעבד נתונים...' :
+                             'שומר במסד הנתונים...';
+        }
+      }, 200);
+
       const fd = new FormData(); fd.append('file', f);
-      const r = await apiUpload('/contacts/import', fd);
-      if (r.inserted !== undefined) { document.getElementById('importStatus').innerHTML = `<p style="color:var(--green)">יובאו ${r.inserted} לקוחות</p>`; setTimeout(()=>{closeModal();pages.contacts();},1000); }
-      else document.getElementById('importStatus').innerHTML = `<p style="color:var(--red)">שגיאה: ${r.error}</p>`;
+
+      try {
+        const r = await apiUpload('/contacts/import', fd);
+        clearInterval(interval);
+        bar.style.width = '100%';
+
+        if (r.inserted !== undefined) {
+          text.textContent = 'הושלם!';
+          let msg = `<p style="color:var(--green)">✓ יובאו ${r.inserted} לקוחות</p>`;
+          if (r.skipped) msg += `<p style="color:var(--text-dim);font-size:13px;margin-top:6px">${r.skipped} שורות דולגו (חסר טלפון)</p>`;
+          document.getElementById('importStatus').innerHTML = msg;
+          setTimeout(()=>{closeModal();pages.contacts();}, 1500);
+        } else {
+          text.textContent = 'שגיאה';
+          bar.style.background = 'var(--red)';
+          document.getElementById('importStatus').innerHTML = `<p style="color:var(--red)">שגיאה: ${r.error}</p>`;
+          btn.disabled = false;
+        }
+      } catch (e) {
+        clearInterval(interval);
+        text.textContent = 'שגיאה';
+        document.getElementById('importStatus').innerHTML = `<p style="color:var(--red)">שגיאה בהעלאה</p>`;
+        btn.disabled = false;
+      }
     };
 
     // ── כרטסת לקוח ──
