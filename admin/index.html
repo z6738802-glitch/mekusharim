@@ -677,10 +677,32 @@
             </select>
           </div>
           <span id="regCount" style="color:var(--text-dim);margin-right:auto"></span>
+          <button class="btn btn-ghost" onclick="exportRegCSV()">${icon('download')} ייצוא CSV</button>
         </div>
         <div class="card"><div id="regList"></div></div>`;
       refresh();
       renderReg();
+    };
+
+    window.exportRegCSV = () => {
+      const filter = document.getElementById('synFilter').value;
+      const term = (document.getElementById('regSearch')?.value||'').trim().toLowerCase();
+      let rows = filter ? currentReg.filter(r=>r.synagogue===filter) : currentReg;
+      if (term) rows = rows.filter(r =>
+        (r.phone||'').toLowerCase().includes(term) ||
+        (r.name||'').toLowerCase().includes(term) ||
+        (r.synagogue||'').toLowerCase().includes(term)
+      );
+      const data = [
+        ['שם','טלפון','בית כנסת','קופון','תאריך'],
+        ...rows.map(r => [r.name||'', r.phone||'', r.synagogue||'', r.coupon||'', fmtDate(r.created_at)])
+      ];
+      const csv = data.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+      const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `דוח_${currentBenefitName}.csv`;
+      a.click();
     };
     window.renderReg = () => {
       const filter = document.getElementById('synFilter').value;
