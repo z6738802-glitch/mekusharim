@@ -80,21 +80,37 @@ router.post('/contacts/import', upload.single('file'), async (req, res) => {
     const ws = wb.Sheets[wb.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(ws);
     let inserted = 0;
+    let skipped = 0;
+
+    // ניקוי תווים נסתרים ורווחים
+    const clean = (v) => v == null ? null :
+      String(v).replace(/[\u200b-\u200f\u202a-\u202e\ufeff]/g, '').trim();
+
     for (const r of rows) {
-      const phone = String(r['טלפון'] || r.phone || r.Phone || '').trim();
-      const phone2 = String(r['טלפון נוסף'] || r.phone2 || '').trim() || null;
-      const phone3 = String(r['טלפון נוסף 2'] || r.phone3 || '').trim() || null;
-      const name = r['שם'] || r.name || r.Name || null;
-      const synagogue = r['בית כנסת'] || r.synagogue || r.Synagogue || null;
-      if (!phone) continue;
+      const phone = clean(r['טלפון'] || r.phone || r.Phone || '');
+      const phone2 = clean(r['טלפון נוסף'] || r.phone2 || '');
+      const phone3 = clean(r['טלפון נוסף 2'] || r.phone3 || '');
+      const name = clean(r['שם'] || r.name || r.Name || '');
+      const synagogue = clean(r['בית כנסת'] || r.synagogue || r.Synagogue || '');
+
+      // דילוג על שורות בלי טלפון תקין (או '0')
+      if (!phone || phone === '0' || phone.length < 7) {
+        skipped++;
+        continue;
+      }
+
       await query(
         `insert into contacts (phone, phone2, phone3, name, synagogue) values ($1,$2,$3,$4,$5)
-         on conflict (phone) do update set phone2=$2, phone3=$3, name=$4, synagogue=$5`,
-        [phone, phone2, phone3, name, synagogue]
+         on conflict (phone) do update set 
+           phone2 = coalesce(nullif(EXCLUDED.phone2, ''), contacts.phone2),
+           phone3 = coalesce(nullif(EXCLUDED.phone3, ''), contacts.phone3),
+           name = coalesce(nullif(EXCLUDED.name, ''), contacts.name),
+           synagogue = coalesce(nullif(EXCLUDED.synagogue, ''), contacts.synagogue)`,
+        [phone, phone2 || null, phone3 || null, name || null, synagogue || null]
       );
       inserted++;
     }
-    res.json({ inserted, total: rows.length });
+    res.json({ inserted, skipped, total: rows.length });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
