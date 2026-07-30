@@ -74,14 +74,34 @@
     <!-- שלב 1: כניסה -->
     <div id="pageLogin" class="card">
       <h2><i data-lucide="phone"></i> כניסה</h2>
-      <div class="field">
-        <label>מספר טלפון</label>
-        <input id="phoneInput" type="tel" placeholder="050-0000000" inputmode="numeric">
+      <div id="loginPhoneStep">
+        <div class="field">
+          <label>מספר טלפון</label>
+          <input id="phoneInput" type="tel" placeholder="050-0000000" inputmode="numeric">
+        </div>
+        <div id="loginError"></div>
+        <button class="btn btn-primary" onclick="startVerify()" id="loginBtn">
+          <i data-lucide="log-in"></i> המשך
+        </button>
       </div>
-      <div id="loginError"></div>
-      <button class="btn btn-primary" onclick="doLogin()" id="loginBtn">
-        <i data-lucide="log-in"></i> כניסה
-      </button>
+
+      <div id="loginVerifyStep" class="hidden">
+        <p style="margin-bottom:14px;color:var(--text-dim);font-size:14px">
+          <i data-lucide="phone-call" style="width:16px;height:16px"></i>
+          שלחנו לך צינתוק לאימות. הזן את <b>4 הספרות האחרונות</b> של המספר שהופיע בשיחה.
+        </p>
+        <div class="field">
+          <label>4 ספרות אחרונות</label>
+          <input id="codeInput" type="tel" maxlength="4" placeholder="1234" inputmode="numeric" style="text-align:center;font-size:22px;letter-spacing:8px;font-weight:700">
+        </div>
+        <div id="verifyError"></div>
+        <button class="btn btn-primary" onclick="checkCode()" id="verifyBtn">
+          <i data-lucide="check"></i> אימות
+        </button>
+        <button class="btn btn-ghost" style="margin-top:8px" onclick="backToPhone()">
+          חזרה
+        </button>
+      </div>
     </div>
 
     <!-- שלב 2: הזמנה -->
@@ -149,8 +169,10 @@
 
   <script>
     const API = '/api';
+    const SESSION_KEY = 'mekusharim_session';
     let currentPhone = null;
     let currentUser = null;
+    let pendingVerifyPhone = null;
     let selectedBenefit = null;
     let allBenefits = [];
 
@@ -165,10 +187,31 @@
       return data;
     }
 
-    // ── כניסה ──
-    document.getElementById('phoneInput').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+    // ── Auto-login מ-localStorage ──
+    async function tryAutoLogin() {
+      const saved = localStorage.getItem(SESSION_KEY);
+      if (!saved) return false;
+      try {
+        const { phone, user } = JSON.parse(saved);
+        currentPhone = phone;
+        currentUser = user;
+        document.getElementById('pageLogin').classList.add('hidden');
+        document.getElementById('pageOrder').classList.remove('hidden');
+        document.getElementById('welcomeName').textContent = user.name || phone;
+        await loadPage();
+        refresh();
+        return true;
+      } catch(e) {
+        localStorage.removeItem(SESSION_KEY);
+        return false;
+      }
+    }
 
-    async function doLogin() {
+    // ── שלב 1: שליחת צינתוק ──
+    document.getElementById('phoneInput').addEventListener('keydown', e => { if(e.key==='Enter') startVerify(); });
+    document.getElementById('codeInput').addEventListener('keydown', e => { if(e.key==='Enter') checkCode(); });
+
+    async function startVerify() {
       const phone = document.getElementById('phoneInput').value.trim().replace(/[-\s]/g,'');
       if (!phone) return;
       const btn = document.getElementById('loginBtn');
@@ -176,18 +219,57 @@
       btn.disabled = true;
       document.getElementById('loginError').innerHTML = '';
       try {
-        const user = await api('/login', { method:'POST', body: JSON.stringify({ phone }) });
-        currentPhone = phone;
-        currentUser = user;
-        document.getElementById('pageLogin').classList.add('hidden');
-        document.getElementById('pageOrder').classList.remove('hidden');
-        document.getElementById('welcomeName').textContent = user.name || phone;
-        await loadPage();
+        await api('/verify/send', { method:'POST', body: JSON.stringify({ phone }) });
+        pendingVerifyPhone = phone;
+        document.getElementById('loginPhoneStep').classList.add('hidden');
+        document.getElementById('loginVerifyStep').classList.remove('hidden');
+        setTimeout(() => document.getElementById('codeInput').focus(), 100);
       } catch(e) {
-        document.getElementById('loginError').innerHTML = `<div class="error">המספר אינו ברשימת הלקוחות המורשים</div>`;
-        btn.innerHTML = `${icon('log-in')} כניסה`;
+        const msg = e.error === 'not_authorized' ? 'המספר אינו ברשימת הלקוחות המורשים' :
+                    e.error === 'tzintuk_failed' ? 'לא הצלחנו לשלוח צינתוק, נסה שוב' :
+                    'אירעה שגיאה, נסה שוב';
+        document.getElementById('loginError').innerHTML = `<div class="error">${msg}</div>`;
+        btn.innerHTML = `${icon('log-in')} המשך`;
         btn.disabled = false;
       }
+      refresh();
+    }
+
+    async function checkCode() {
+      const code = document.getElementById('codeInput').value.trim();
+      if (code.length !== 4) return;
+      const btn = document.getElementById('verifyBtn');
+      btn.innerHTML = '<div class="spinner"></div>';
+      btn.disabled = true;
+      document.getElementById('verifyError').innerHTML = '';
+      try {
+        const r = await api('/verify/check', { method:'POST', body: JSON.stringify({ phone: pendingVerifyPhone, code }) });
+        currentPhone = pendingVerifyPhone;
+        currentUser = r.user;
+        localStorage.setItem(SESSION_KEY, JSON.stringify({ phone: currentPhone, user: currentUser }));
+        document.getElementById('pageLogin').classList.add('hidden');
+        document.getElementById('pageOrder').classList.remove('hidden');
+        document.getElementById('welcomeName').textContent = currentUser.name || currentPhone;
+        await loadPage();
+      } catch(e) {
+        const msg = e.error === 'wrong_code' ? 'קוד שגוי, נסה שוב' :
+                    e.error === 'no_code' ? 'הקוד פג תוקף, בקש שוב' :
+                    'אירעה שגיאה';
+        document.getElementById('verifyError').innerHTML = `<div class="error">${msg}</div>`;
+        btn.innerHTML = `${icon('check')} אימות`;
+        btn.disabled = false;
+      }
+      refresh();
+    }
+
+    function backToPhone() {
+      document.getElementById('loginVerifyStep').classList.add('hidden');
+      document.getElementById('loginPhoneStep').classList.remove('hidden');
+      document.getElementById('codeInput').value = '';
+      document.getElementById('verifyError').innerHTML = '';
+      document.getElementById('loginBtn').innerHTML = `${icon('log-in')} המשך`;
+      document.getElementById('loginBtn').disabled = false;
+      pendingVerifyPhone = null;
       refresh();
     }
 
@@ -379,16 +461,19 @@
     }
 
     function logout() {
+      localStorage.removeItem(SESSION_KEY);
       currentPhone = null; currentUser = null; selectedBenefit = null;
+      pendingVerifyPhone = null;
       document.getElementById('pageLogin').classList.remove('hidden');
       document.getElementById('pageOrder').classList.add('hidden');
       document.getElementById('phoneInput').value = '';
-      document.getElementById('loginBtn').innerHTML = `${icon('log-in')} כניסה`;
-      document.getElementById('loginBtn').disabled = false;
+      document.getElementById('codeInput').value = '';
+      backToPhone();
       refresh();
     }
 
-    refresh();
+    // הפעלה
+    tryAutoLogin().then(ok => { if (!ok) refresh(); });
   </script>
 </body>
 </html>

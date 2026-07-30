@@ -5,6 +5,71 @@ import * as C from '../services/coupons.js';
 
 const router = express.Router();
 
+// אחסון קודי אימות זמניים (בזיכרון, 10 דקות תוקף)
+const verifyCodes = new Map();
+setInterval(() => {
+  const now = Date.now();
+  for (const [k, v] of verifyCodes) if (now - v.at > 10*60*1000) verifyCodes.delete(k);
+}, 60*1000);
+
+// ── שליחת קוד אימות בצינתוק ──
+router.post('/verify/send', async (req, res) => {
+  const { phone } = req.body;
+  if (!phone) return res.status(400).json({ error: 'missing phone' });
+
+  // 1. בדיקה שהטלפון רשום
+  const { rows } = await query(
+    `select id, phone from mekusharim.contacts where phone=$1 or phone2=$1 or phone3=$1 limit 1`,
+    [phone]
+  );
+  if (!rows.length) return res.status(401).json({ error: 'not_authorized' });
+
+  // 2. יצירת קוד 4 ספרות
+  const code = String(Math.floor(1000 + Math.random() * 9000));
+  verifyCodes.set(phone, { code, at: Date.now() });
+
+  // 3. הפעלת צינתוק דרך ימות
+  try {
+    const params = new URLSearchParams({
+      token: process.env.YEMOT_TOKEN,
+      callerId: 'RAND',
+      verifyCode: code,
+      TzintukTimeOut: '9',
+      phones: JSON.stringify([phone]),
+    });
+    const url = `https://www.call2all.co.il/ym/api/RunTzintuk?${params}`;
+    const r = await fetch(url);
+    const data = await r.json();
+    if (data.responseStatus !== 'OK') {
+      return res.status(500).json({ error: 'tzintuk_failed', details: data });
+    }
+    res.json({ ok: true, message: 'צינתוק נשלח - הקש 4 ספרות אחרונות של המספר' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── אימות הקוד ──
+router.post('/verify/check', async (req, res) => {
+  const { phone, code } = req.body;
+  if (!phone || !code) return res.status(400).json({ error: 'missing fields' });
+
+  const stored = verifyCodes.get(phone);
+  if (!stored) return res.status(401).json({ error: 'no_code' });
+  if (stored.code !== String(code).trim()) return res.status(401).json({ error: 'wrong_code' });
+
+  verifyCodes.delete(phone);
+
+  // מחזיר את פרטי הלקוח + טוקן פשוט
+  const { rows } = await query(
+    `select id, name, phone, synagogue from mekusharim.contacts where phone=$1 or phone2=$1 or phone3=$1 limit 1`,
+    [phone]
+  );
+  if (!rows.length) return res.status(401).json({ error: 'not_authorized' });
+
+  res.json({ ok: true, user: rows[0] });
+});
+
 // ── כניסה: בדיקת טלפון ──
 router.post('/login', async (req, res) => {
   const { phone } = req.body;
