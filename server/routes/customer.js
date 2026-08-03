@@ -43,27 +43,23 @@ router.post('/verify/send', async (req, res) => {
   rl.lastAt = now;
   rateLimit.set(phone, rl);
 
-  // 3. יצירת קוד 4 ספרות
-  const code = String(Math.floor(1000 + Math.random() * 9000));
-  verifyCodes.set(phone, { code, at: Date.now() });
-
-  // 4. הפעלת צינתוק דרך ימות
+  // 3. הפעלת צינתוק דרך ימות (ימות מייצרת את הקוד בעצמה)
   try {
     const params = new URLSearchParams({
       token: process.env.YEMOT_TOKEN,
       callerId: 'RAND',
-      verifyCode: code,
       TzintukTimeOut: '9',
       phones: JSON.stringify([phone]),
     });
     const url = `https://www.call2all.co.il/ym/api/RunTzintuk?${params}`;
-    console.log('Tzintuk request:', { phone, code });
     const r = await fetch(url);
     const data = await r.json();
     console.log('Tzintuk response:', data);
     if (data.responseStatus !== 'OK') {
       return res.status(500).json({ error: 'tzintuk_failed', details: data });
     }
+    // שומרים את הקוד שימות ייצרה (לא את שלנו)
+    verifyCodes.set(phone, { code: String(data.verifyCode), at: Date.now() });
     res.json({ ok: true, message: 'צינתוק נשלח' });
   } catch (err) {
     console.error('Tzintuk error:', err);
