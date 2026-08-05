@@ -41,6 +41,9 @@ app.use('/my', express.static('customer'));
 // דף נחיתה
 app.use('/', express.static('landing'));
 
+// אחסון קבצים ציבוריים
+app.use('/uploads', express.static('uploads'));
+
 const PORT = process.env.PORT || 3000;
 
 initDb()
