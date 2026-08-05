@@ -3,6 +3,7 @@ import 'dotenv/config';
 import ivrRouter from './routes/ivr.js';
 import adminRouter from './routes/admin.js';
 import customerRouter from './routes/customer.js';
+import filesRouter from './routes/files.js';
 import { ivrLogger } from './services/logger.js';
 import { initDb } from './db/init.js';
 
@@ -43,6 +44,12 @@ app.use('/', express.static('landing'));
 
 // אחסון קבצים ציבוריים
 app.use('/uploads', express.static('uploads'));
+
+// API של ניהול קבצים
+app.use('/files-api', filesRouter);
+
+// פאנל ניהול קבצים
+app.use('/files', express.static('files-panel'));
 
 const PORT = process.env.PORT || 3000;
 

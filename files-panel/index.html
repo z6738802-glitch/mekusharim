@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ניהול קבצים</title>
+  <link rel="icon" type="image/png" href="/uploads/mark-logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;700;900&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --bg: #F7F2E8;
+      --surface: #FFFFFF;
+      --surface-2: #F0E9D6;
+      --border: rgba(155,114,38,0.18);
+      --text: #4A3B2A;
+      --text-dim: #8A7860;
+      --accent: #C9974B;
+      --accent-dim: #9B7226;
+      --gold-light: #DDB877;
+      --green: #4CAF50;
+      --red: #E57373;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Heebo', sans-serif;
+      background: var(--bg);
+      background-image: linear-gradient(135deg, #FAF6EE 0%, #F0E6D0 100%);
+      background-attachment: fixed;
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .wrap { max-width: 900px; margin: 0 auto; }
+    .header {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 24px;
+    }
+    .header h1 {
+      font-size: 24px; font-weight: 900; color: var(--accent-dim);
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 16px rgba(155,114,38,0.06);
+    }
+    .btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all .2s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--gold-light));
+      color: white;
+      box-shadow: 0 3px 12px rgba(155,114,38,0.25);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 5px 16px rgba(155,114,38,0.35); }
+    .btn-ghost {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-danger {
+      background: rgba(229,115,115,.12);
+      color: #C62828;
+      border: 1px solid rgba(229,115,115,.25);
+    }
+    input, .field {
+      background: white;
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 14px;
+      width: 100%;
+    }
+    input[type="file"] { padding: 0; cursor: pointer; }
+    input[type="file"]::file-selector-button {
+      background: linear-gradient(135deg, var(--accent), var(--gold-light));
+      color: white; border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      margin-left: 12px;
+    }
+    .file-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px; background: var(--surface-2); border-radius: 8px;
+      margin-bottom: 8px;
+    }
+    .file-item img.thumb {
+      width: 48px; height: 48px; object-fit: cover;
+      border-radius: 6px; border: 1px solid var(--border);
+    }
+    .file-item .name { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+    .file-item .name a { color: var(--accent-dim); text-decoration: none; font-weight: 600; }
+    .file-item .size { color: var(--text-dim); font-size: 13px; }
+    .url-box {
+      background: white; padding: 8px 12px; border-radius: 6px;
+      border: 1px solid var(--border); font-family: monospace;
+      font-size: 12px; direction: ltr; text-align: left;
+      cursor: pointer; word-break: break-all;
+    }
+    .url-box:hover { border-color: var(--accent); }
+    .hidden { display: none; }
+    .success { color: var(--green); padding: 10px; background: rgba(76,175,80,.1); border-radius: 8px; margin-bottom: 12px; }
+    .error { color: #C62828; padding: 10px; background: rgba(229,115,115,.1); border-radius: 8px; margin-bottom: 12px; }
+    h3 { color: var(--text-dim); font-size: 14px; margin-bottom: 12px; font-weight: 600; }
+    .progress { height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; margin-top: 8px; }
+    .progress-bar { height: 100%; background: linear-gradient(90deg, var(--accent), var(--gold-light)); width: 0%; transition: width .3s; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <img src="/uploads/mark-logo.png" style="width:40px" onerror="this.style.display='none'">
+      <h1>ניהול קבצים</h1>
+    </div>
+
+    <!-- כניסה -->
+    <div id="loginCard" class="card">
+      <h3>סיסמה</h3>
+      <input id="password" type="password" placeholder="הזן סיסמה" onkeydown="if(event.key==='Enter')login()">
+      <div id="loginError"></div>
+      <button class="btn btn-primary" onclick="login()" style="margin-top:12px">
+        <i data-lucide="log-in"></i> כניסה
+      </button>
+    </div>
+
+    <!-- העלאה + רשימה -->
+    <div id="mainCard" class="hidden">
+      <div class="card">
+        <h3><i data-lucide="upload-cloud" style="width:14px"></i> העלאת קובץ</h3>
+        <input id="fileInput" type="file">
+        <div class="progress hidden" id="uploadProgress"><div class="progress-bar" id="progressBar"></div></div>
+        <div id="uploadStatus" style="margin-top:8px"></div>
+        <button class="btn btn-primary" onclick="upload()" style="margin-top:12px" id="uploadBtn">
+          <i data-lucide="upload"></i> העלה
+        </button>
+      </div>
+
+      <div class="card">
+        <h3><i data-lucide="folder" style="width:14px"></i> קבצים בשרת</h3>
+        <div id="filesList" style="color:var(--text-dim)">טוען...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API = '/files-api';
+    let pw = null;
+
+    function refresh() { lucide.createIcons(); }
+    refresh();
+
+    async function login() {
+      const p = document.getElementById('password').value;
+      try {
+        const r = await fetch(API + '/list', { headers: { 'x-files-key': p } });
+        if (!r.ok) throw new Error('wrong');
+        pw = p;
+        document.getElementById('loginCard').classList.add('hidden');
+        document.getElementById('mainCard').classList.remove('hidden');
+        loadFiles();
+      } catch(e) {
+        document.getElementById('loginError').innerHTML = '<div class="error">סיסמה שגויה</div>';
+      }
+      refresh();
+    }
+
+    async function loadFiles() {
+      const r = await fetch(API + '/list', { headers: { 'x-files-key': pw } });
+      const list = await r.json();
+      const el = document.getElementById('filesList');
+      if (!list.length) { el.innerHTML = 'אין קבצים עדיין'; return; }
+      const isImage = (n) => /\.(png|jpe?g|gif|webp|svg)$/i.test(n);
+      el.innerHTML = list.map(f => {
+        const url = window.location.origin + '/uploads/' + f.name;
+        return `<div class="file-item">
+          ${isImage(f.name) ? `<img class="thumb" src="/uploads/${f.name}">` : `<div style="width:48px;height:48px;background:var(--surface);border-radius:6px;display:flex;align-items:center;justify-content:center"><i data-lucide="file"></i></div>`}
+          <div class="name">
+            <div style="margin-bottom:4px"><a href="/uploads/${f.name}" target="_blank">${f.name}</a></div>
+            <div class="url-box" onclick="copyUrl(this,'${url}')">${url}</div>
+            <div class="size">${(f.size / 1024).toFixed(1)} KB</div>
+          </div>
+          <button class="btn btn-danger" onclick="deleteFile('${f.name}')" title="מחק">
+            <i data-lucide="trash-2"></i>
+          </button>
+        </div>`;
+      }).join('');
+      refresh();
+    }
+
+    async function upload() {
+      const f = document.getElementById('fileInput').files[0];
+      if (!f) return;
+      const btn = document.getElementById('uploadBtn');
+      const bar = document.getElementById('progressBar');
+      const prog = document.getElementById('uploadProgress');
+      const status = document.getElementById('uploadStatus');
+      btn.disabled = true;
+      prog.classList.remove('hidden');
+      status.innerHTML = '';
+      bar.style.width = '0%';
+
+      const fd = new FormData();
+      fd.append('file', f);
+
+      try {
+        // מדמה התקדמות
+        let p = 0;
+        const iv = setInterval(() => { if (p < 85) { p += 8; bar.style.width = p + '%'; } }, 150);
+
+        const r = await fetch(API + '/upload', {
+          method: 'POST',
+          headers: { 'x-files-key': pw },
+          body: fd
+        });
+        clearInterval(iv);
+        bar.style.width = '100%';
+
+        const data = await r.json();
+        if (r.ok) {
+          status.innerHTML = `<div class="success">הועלה בהצלחה: ${data.name}</div>`;
+          document.getElementById('fileInput').value = '';
+          setTimeout(() => { prog.classList.add('hidden'); status.innerHTML = ''; }, 3000);
+          loadFiles();
+        } else {
+          status.innerHTML = `<div class="error">${data.error||'שגיאה בהעלאה'}</div>`;
+        }
+      } catch(e) {
+        status.innerHTML = `<div class="error">שגיאה בהעלאה</div>`;
+      }
+      btn.disabled = false;
+    }
+
+    async function deleteFile(name) {
+      if (!confirm('למחוק את ' + name + '?')) return;
+      await fetch(API + '/delete/' + encodeURIComponent(name), {
+        method: 'DELETE',
+        headers: { 'x-files-key': pw }
+      });
+      loadFiles();
+    }
+
+    function copyUrl(el, url) {
+      navigator.clipboard.writeText(url);
+      const orig = el.textContent;
+      el.textContent = '✓ הועתק!';
+      el.style.color = 'var(--green)';
+      setTimeout(() => { el.textContent = orig; el.style.color = ''; }, 1200);
+    }
+  </script>
+</body>
+</html>
